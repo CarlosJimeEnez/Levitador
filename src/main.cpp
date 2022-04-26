@@ -1,4 +1,6 @@
 #include <Arduino.h>
+#include <math.h>
+#include <map>
 using namespace std;
 
 #define trig D3 
@@ -50,7 +52,10 @@ struct Grafica{
     strcpy(this -> nombre ,nombre);   
     this -> rango = rango;
     this -> length_fun_memb = length_fun_memb;  
-    
+
+    //Tamano del vector del rengo total de la entrada: 
+    this->length_vector = rango / 0.001; 
+
     //Guarda en el atributo: funciones de memb las funciones de memb. 
     for(int i=0;i<length_fun_memb;i++){
       this -> funciones_meb[i] = funciones_meb[i];  
@@ -60,22 +65,25 @@ struct Grafica{
   
   //Devuelve en un mapa de la forma <key - value> los valores de las graficas creadas:
   void build_graph(){
-    // Inicializa el valor del rango: 
-    for (int i = 0; i < this -> rango; i+= 0.001)
-    {
-      this-> y_axis_value.push_back(i);
-    }
+    // Inicializa el valor del rango del eje Y: 
+    std::vector<int> y_values(this->length_vector); 
+    int length_rango_entrada = y_values.size(); 
 
-    for (int i = 0; i < this -> length_fun_memb; i++)
+    // Inicializa el valor del rango del eje X:
+    std::vector<int> x_values(length_rango_entrada); 
+    Serial.println("Exponencial");
+    //Realiza un recorrido por todas las funciones de membresia y comprueba si es Gaussiana, luego 
+    //guarda el valor de cada elemento de esta funcion en un array: 
+    for (Func_meb funciones: this->funciones_meb)
     {    
       //Si la funcion es del tipo exp: 
-        if (this-> funciones_meb[i].tipo == "exp")
+        if (funciones.tipo == "exp")
         {
           Serial.println("Exponencial");
-          for (int i = 0; i < this -> y_axis_value.size() ;i++){
-            this->y_axis_value[i] = //// Expresion para funcion exponencial /////
+          for (int i = 0; i < length_rango_entrada ;i++){
+            y_values[i] = exp(-funciones.k*(pow(x_values[i]-funciones.m,2)));
+            
           }
-          
         }else{
           Serial.println("IdontNow"); 
         }
@@ -90,11 +98,12 @@ struct Grafica{
   }
 
   //Atributos
+
+  int length_vector = 0; 
   int length_fun_memb = 0; 
   char nombre[20] = ""; 
   float rango = 0.0;
   Func_meb funciones_meb[10]; 
-  vector<int> y_axis_value; 
 };
 
 
@@ -118,7 +127,7 @@ float tiempo_enc = 0;
 
 /// ----------- Setup 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   //Tamaño del vector funciones_meb: 
   int length_func_memb_array = 0;
@@ -128,7 +137,7 @@ void setup() {
  
   //Inicia el objeto de la clase Grafica y prepara los valores para crear la grafica de 
   //entrada 1. 
-  Grafica Input1("Input", 22.5, funciones_meb, length_func_memb_array);
+  Grafica Input1("Input", 10, funciones_meb, length_func_memb_array);
   Input1.build_graph(); 
 
   pinMode(IN1, OUTPUT); 
