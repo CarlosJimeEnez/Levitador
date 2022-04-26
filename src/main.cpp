@@ -65,29 +65,25 @@ struct Grafica{
   
   //Devuelve en un mapa de la forma <key - value> los valores de las graficas creadas:
   void build_graph(){
+    // int length = this->length_vector; 
     // Inicializa el valor del rango del eje Y: 
-    std::vector<int> y_values(this->length_vector); 
-    int length_rango_entrada = y_values.size(); 
-
-    // Inicializa el valor del rango del eje X:
-    std::vector<int> x_values(length_rango_entrada); 
-    Serial.println("Exponencial");
-    //Realiza un recorrido por todas las funciones de membresia y comprueba si es Gaussiana, luego 
-    //guarda el valor de cada elemento de esta funcion en un array: 
-    for (Func_meb funciones: this->funciones_meb)
-    {    
-      //Si la funcion es del tipo exp: 
-        if (funciones.tipo == "exp")
-        {
-          Serial.println("Exponencial");
-          for (int i = 0; i < length_rango_entrada ;i++){
-            y_values[i] = exp(-funciones.k*(pow(x_values[i]-funciones.m,2)));
+    
+    // //Realiza un recorrido por todas las funciones de membresia y comprueba si es Gaussiana, luego 
+    // //guarda el valor de cada elemento de esta funcion en un array: 
+    // for (Func_meb funciones: this->funciones_meb)
+    // {    
+    //   //Si la funcion es del tipo exp: 
+    //     if (funciones.tipo == "exp")
+    //     {
+    //       Serial.println("Exponencial");
+    //       for (int i = 0; i < length_rango_entrada ;i++){
+    //         y_values[i] = exp(-funciones.k*(pow(x_values[i]-funciones.m,2)));
             
-          }
-        }else{
-          Serial.println("IdontNow"); 
-        }
-    }
+    //       }
+    //     }else{
+    //       Serial.println("IdontNow"); 
+    //     }
+    // }
     
   }
 
@@ -104,6 +100,7 @@ struct Grafica{
   char nombre[20] = ""; 
   float rango = 0.0;
   Func_meb funciones_meb[10]; 
+  
 };
 
 
