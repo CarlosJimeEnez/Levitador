@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <math.h>
 #include <map>
+#include<Plotter.h>
+
 using namespace std;
 
 #define trig D3 
@@ -9,6 +11,8 @@ using namespace std;
 #define IN1 D0 
 #define IN2 D1 
 #define ENA1 D2
+
+double x; 
 
 float ad2volt(){
   float adc_lect = float(analogRead(A0)); 
@@ -34,7 +38,7 @@ struct Motor{
 
 struct Func_meb{
   //Funciones: 
-  friend class Grafica; 
+  friend void build_graph(); 
   void get_name(){
     Serial.println(nombre); 
   }
@@ -46,63 +50,35 @@ struct Func_meb{
   float k = 0;  
 };
 
-struct Grafica{
-  //Funciones
-  Grafica(char *nombre, float rango, Func_meb *funciones_meb, int length_fun_memb){
-    strcpy(this -> nombre ,nombre);   
-    this -> rango = rango;
-    this -> length_fun_memb = length_fun_memb;  
+void build_graph(char *nombre, float rango, Func_meb *funciones_meb, int length_fun_memb){ 
+    int rango_grafica =  rango/0.01; 
+    Serial.println(rango_grafica); 
 
-    //Tamano del vector del rengo total de la entrada: 
-    this->length_vector = rango / 0.001; 
+    //Inicializa el valor del rango del eje Y: 
+    float y_values[rango_grafica]; 
+    float x_values[rango_grafica]; 
 
-    //Guarda en el atributo: funciones de memb las funciones de memb. 
-    for(int i=0;i<length_fun_memb;i++){
-      this -> funciones_meb[i] = funciones_meb[i];  
+    //Realiza un recorrido por todas las funciones de membresia y comprueba si es Gaussiana, luego 
+    //guarda el valor de cada elemento de esta funcion en un array: 
+    for (int i = 0; i < length_fun_memb; i++)
+    {    
+      //Si la funcion es del tipo exp: 
+        if (funciones_meb[i].tipo == "exp")
+        {
+          Serial.println("Exponencial");
+
+          //Construccion de la grafica: 
+          for (int j = 0; j < rango_grafica; j++){
+            y_values[j] = exp(-funciones_meb[i].k *(pow( x_values[j] - funciones_meb[i].m, 2)));
+            Serial.println(y_values[j]); 
+          }
+
+        }else{
+          Serial.println("IdontNow"); 
+        }
+    Serial.println("Hi"); 
     }
-
-  }
-  
-  //Devuelve en un mapa de la forma <key - value> los valores de las graficas creadas:
-  void build_graph(){
-    // int length = this->length_vector; 
-    // Inicializa el valor del rango del eje Y: 
-    
-    // //Realiza un recorrido por todas las funciones de membresia y comprueba si es Gaussiana, luego 
-    // //guarda el valor de cada elemento de esta funcion en un array: 
-    // for (Func_meb funciones: this->funciones_meb)
-    // {    
-    //   //Si la funcion es del tipo exp: 
-    //     if (funciones.tipo == "exp")
-    //     {
-    //       Serial.println("Exponencial");
-    //       for (int i = 0; i < length_rango_entrada ;i++){
-    //         y_values[i] = exp(-funciones.k*(pow(x_values[i]-funciones.m,2)));
-            
-    //       }
-    //     }else{
-    //       Serial.println("IdontNow"); 
-    //     }
-    // }
-    
-  }
-
-  void get_names(){
-    for(Func_meb funciones: funciones_meb){
-      funciones.get_name();  
-    }
-  }
-
-  //Atributos
-
-  int length_vector = 0; 
-  int length_fun_memb = 0; 
-  char nombre[20] = ""; 
-  float rango = 0.0;
-  Func_meb funciones_meb[10]; 
-  
-};
-
+}
 
 Func_meb fun1 = {"Baja", "exp", 0.001, 1}; 
 Func_meb fun2 = {"Media", "exp", 3, 0.4}; 
@@ -121,11 +97,11 @@ float v_in = 0;
 //Ultrasonico: 
 int dist = 0; 
 float tiempo_enc = 0; 
-
+Plotter p; 
 /// ----------- Setup 
 void setup() {
   Serial.begin(115200);
-
+  
   //Tamaño del vector funciones_meb: 
   int length_func_memb_array = 0;
   for(Func_meb funciones: funciones_meb){
@@ -134,8 +110,8 @@ void setup() {
  
   //Inicia el objeto de la clase Grafica y prepara los valores para crear la grafica de 
   //entrada 1. 
-  Grafica Input1("Input", 10, funciones_meb, length_func_memb_array);
-  Input1.build_graph(); 
+  build_graph("Input", 10, funciones_meb, length_func_memb_array);
+   
 
   pinMode(IN1, OUTPUT); 
   pinMode(IN2, OUTPUT); 
@@ -143,6 +119,8 @@ void setup() {
   pinMode(trig, OUTPUT); 
   pinMode(echo, INPUT);
   
+  p.Begin(); 
+ 
   // //Auto: deduce el tipo de variable entrante: 
   // for(auto nombre: funciones_meb){
   //   nombre.get_name();
@@ -150,6 +128,9 @@ void setup() {
 }
 
 void loop() {
+  
+  p.Plot(); // usually called within loop()
+
   // digitalWrite(trig, HIGH); 
   // delay(10); 
   // digitalWrite(trig,LOW); 
