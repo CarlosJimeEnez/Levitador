@@ -41,9 +41,6 @@ struct Arreglo_arreglos
     vector<float> arreglo; 
 };
 
-//Calculo de los valroes del eje y: 
-
-// std::map<int, std::vector<double>>
 std::map<int, vector<float>> build_graph(char* Input, vector<Func_meb> &funciones_memb, vector<float> &time, vector<float> &y_values){
     std::map<int, vector<float>> values_to_return;  
     
@@ -64,15 +61,14 @@ std::map<int, vector<float>> build_graph(char* Input, vector<Func_meb> &funcione
     return values_to_return; 
 }
 
-
 ///Inicio del vector del tiempo: 
 std::vector<float> tiempo(const float init_time, const float finish_time)
 {
   //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
   std::vector<float> time;
   int rango = finish_time - init_time; 
-  for (float i = 0; i < rango; i += 0.01) {
-      time.push_back(i);
+  for (float i = init_time; i < finish_time; i += 0.01) {
+    time.push_back(i);
   }
   
   int32_t length = time.size();
@@ -113,22 +109,14 @@ void setup()
   //entrada 1.
   char Input[10] = "Input1";
   auto y_values_map = build_graph(Input, funciones_memb, time, y_values);
-
+  Serial.println(y_values.size());   
   //Obtien los valores retornados en y_values_map y los organiza en y_values
   vector<float> contendor_temp; 
   vector<Arreglo_arreglos> y_values_arreglo; 
   for (auto i = 0; i < funciones_memb.size(); i++) {
     auto item = y_values_map.find(i);
-    
-    Serial.println(item->second[3]);
-    // for (float i : item->second){
-    //     contendor_temp.push_back(i); 
-    // }
-
-  //       // Arreglo_arreglos contenedor(contendor_temp);
-  //       // y_values_arreglo.push_back(contenedor);  
-  //       contendor_temp.clear(); 
-     }
+    Serial.println(item->second[100*(48.5 - 2.5)]);   
+  }
 }
 
 void loop()
