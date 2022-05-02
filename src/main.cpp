@@ -2,14 +2,29 @@
 #include <map>
 #include <vector>
 #include<string>
-#include<map>
-using namespace std; 
+#include<map> 
+#define motor GPIO_NUM_27 //PWM 
+#define Trig GPIO_NUM_12 
+#define Echo GPIO_NUM_14
+
+
+using namespace std;
+/// Configuraciones del motor: 
+const int freq = 1000; //HZ
+const int canal0 = 0; 
+const int resolucion = 10; //bit
+float tiempo_inicio = millis();  
+int duty_cycle = 0; 
+float distancia = 0; 
+
 struct Func_meb {
   //Funciones: 
-  Func_meb(char *nombre, std::string tipo, double m, double k){
+  Func_meb(char *nombre, std::string tipo, float m, float k){
     this ->k = k; 
     this ->m = m; 
     this->tipo = tipo; 
+    // this->init_time = init_time; 
+    // this->finish_time = finish_time; 
     strcpy(this ->nombre, nombre); 
   }
 
@@ -24,9 +39,12 @@ struct Func_meb {
   //Atributos: 
   char nombre[10] = " ";
   std::string tipo = "";
-  double m = 0;
-  double k = 0;
+  float m = 0;
+  float k = 0;
+  // float init_time = 0; 
+  // float finish_time = 0; 
 };
+
 //Clase para hacer arreglos de arreglos: 
 struct Arreglo_arreglos
 {
@@ -41,9 +59,13 @@ struct Arreglo_arreglos
     vector<float> arreglo; 
 };
 
+//Funcion que calcula los valores de pertencia para cada grafica: 
 std::map<int, vector<float>> build_graph(char* Input, vector<Func_meb> &funciones_memb, vector<float> &time, vector<float> &y_values){
     std::map<int, vector<float>> values_to_return;  
-    
+    Serial.print("Nombre: "); 
+    Serial.println(Input); 
+    Serial.print("Funcioens de membre: ");
+    Serial.println(funciones_memb[0].k);  
     //Recorrido por todas las funciones de membr, toma sus atributos y calcula el valor de pertenencia de cada uno: 
     for (int i = 0; i < funciones_memb.size(); i++) {
         if (funciones_memb[i].tipo == "exp") {
@@ -66,9 +88,23 @@ std::vector<float> tiempo(const float init_time, const float finish_time)
 {
   //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
   std::vector<float> time;
-  int rango = finish_time - init_time; 
   for (float i = init_time; i < finish_time; i += 0.01) {
     time.push_back(i);
+  }
+  
+  return time;
+}
+
+//Valores del eje x ERROR: 
+std::vector<float> error_xval(float init_time, const float finish_time)
+{
+  //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
+  float rango = finish_time - init_time; 
+  float j = init_time; 
+  std::vector<float> time(rango*100, 0);
+  for (float i = 0; i < rango*100; i += 1) {
+    time[i] = j;
+    j = j + 0.01; 
   }
   
   int32_t length = time.size();
@@ -76,20 +112,52 @@ std::vector<float> tiempo(const float init_time, const float finish_time)
   return time;
 }
 
-///
+//Calculo de la  distancia: 
+float calc_dist(int res_prom){
+  float dist_prom = 0; 
+  for (size_t i = 0; i < res_prom; i++)
+  {
+    //Calcual la distancia:
+    digitalWrite(Trig, HIGH); 
+    delayMicroseconds(10); 
+    digitalWrite(Trig, LOW); 
+    //Medimos la distancia: 
+    float tiempo  = pulseIn(Echo, HIGH); 
+    //Convertimos la distancia en cm:  
+    float distancia = tiempo/59; 
+    Serial.print("Distancia: ");
+    Serial.println(distancia); 
+    delay(60);
+    dist_prom += distancia; 
+  }
+  dist_prom = dist_prom/res_prom; 
+  
+  return dist_prom; 
+}
+
+/// Variables que guardan los valores de pertenecia de las funciones de membr: 
+std::map<int, std::vector<float>> salida_values_map; 
+std::map<int, std::vector<float>> error_values_map; 
+std::map<int, std::vector<float>> y_values_map; 
+
 void setup()
 {
-  Serial.begin(115200);
-  //Inicializamos el eje y y x: 
-  vector<float> time = tiempo(2.5, 48.5); 
-  vector<float> y_values(time.size(), 0); 
+  Serial.begin(921600);
+  //Inicio del tiempo: 
+  const float k = 27; 
+  float init_time = 2.5; 
+  float finish_time = 48.5;
 
-  // for (auto &&i : time)
-  // {
-  //   Serial.println(i); 
-  // }
+  float init_time2 = k - finish_time; 
+  float finish_time2 = k - init_time; 
 
-//  Funciones de membresia: 
+  float init_salida_val = 7; 
+  float finish_salida_val = 11.4;
+
+  vector<float> time = tiempo(init_time, finish_time);
+  vector<float> y_values(time.size(), 0);
+  
+//Funciones de membresia INPUT1: 
   Func_meb fun1("NB", "exp", 2.5, 0.03); 
   Func_meb fun2("NM", "exp", 10.13, 0.04);
   Func_meb fun3("NS", "exp", 19.71, 0.04);
@@ -105,21 +173,97 @@ void setup()
       fun.mostrar_valores(); 
   }
 
+  //ERROR func_membr: 
+  Func_meb fun8("NB", "exp", -21.5, 0.004);
+  Func_meb fun9("NS", "exp", 24.5, 0.004);
+  Func_meb error_arreglo[] = { fun8, fun9 };
+
+  std::vector<Func_meb> error_func_membr;
+  for (auto fun : error_arreglo) {
+      error_func_membr.push_back(fun);
+      //fun.mostrar_valores(); 
+  }
+
+  //SALIDA funcion membre:  
+    Func_meb fun10("NB", "exp", 7, 2.4);
+    Func_meb fun11("NM", "exp", 7.83, 4);
+    Func_meb fun12("NS", "exp", 8.57, 4.3);
+    Func_meb fun13("Z", "exp", 9.22, 4.3);
+    Func_meb fun14("PS", "exp", 9.96, 4.3);
+    Func_meb fun15("PM", "exp", 10.7, 4.3);
+    Func_meb fun16("PB", "exp", 11.4, 4.3);
+    Func_meb salida_arreglo[] = { fun10, fun11, fun12, fun13, fun14, fun15, fun16 };
+    
+    std::vector<Func_meb> salida_func_membr;
+    for (auto fun : salida_arreglo) {
+        salida_func_membr.push_back(fun);
+        //fun.mostrar_valores(); 
+    }
+
   //Inicia el objeto de la clase Grafica y prepara los valores para crear la grafica de 
   //entrada 1.
   char Input[10] = "Input1";
-  auto y_values_map = build_graph(Input, funciones_memb, time, y_values);
-  Serial.println(y_values.size());   
-  //Obtien los valores retornados en y_values_map y los organiza en y_values
-  vector<float> contendor_temp; 
-  vector<Arreglo_arreglos> y_values_arreglo; 
-  for (auto i = 0; i < funciones_memb.size(); i++) {
-    auto item = y_values_map.find(i);
-    Serial.println(item->second[100*(48.5 - 2.5)]);   
+  y_values_map = build_graph(Input, funciones_memb, time, y_values);
+
+
+  //Graph error 2:  
+  time.clear(); 
+  y_values.clear(); 
+  time = error_xval(init_time2, finish_time2);
+  for (int i = 0; i < time.size(); i++)
+  {
+      y_values.push_back(0); 
   }
+  char Nombre[10] = "Error"; 
+  error_values_map = build_graph(Nombre, error_func_membr, time, y_values);
+  
+
+  /// Salida:
+  time.clear();
+  y_values.clear();
+  time = tiempo(init_salida_val, finish_salida_val);
+  for (int i = 0; i < time.size(); i++)
+  {
+      y_values.push_back(0);
+  }
+
+  char Nombre_salida[10] = "salida";
+  salida_values_map = build_graph(Nombre, salida_func_membr, time, y_values);
+
+  //FUZZYFICAR el ERROR: 
+  for (auto i = 0; i < error_values_map.size(); i++)
+  {
+      auto item = error_values_map.find(i);
+      float error = k - 48.5; //2.5 va a variar porque es la entrada. 
+      Serial.println(item->second[100 * (error + 21.5)]);
+  }
+
+  /// PWM resolucion, freq, canal setup. 
+  ledcSetup(canal0, freq, resolucion); 
+  ledcAttachPin(motor, canal0); 
+
+  // Sensor_Ultrasonico: 
+  pinMode(Trig, OUTPUT); 
+  pinMode(Echo, INPUT); 
 }
 
 void loop()
 {
+  //INPUT: 
+  distancia = calc_dist(2);
+  //FUZZIFICACION: 
 
+  // while (duty_cycle < 1023)
+  // {
+  //   ledcWrite(canal0, duty_cycle++); 
+  //   delay(10); 
+  // }
+  ledcWrite(canal0, 626); 
+  duty_cycle = 0; 
+  float tiempo_fijo = millis(); 
+  // if(tiempo_fijo > tiempo_inicio + 1000){
+  //   tiempo_inicio = millis(); 
+  //   digitalWrite(led, LOW); 
+  //   Serial.println("Paso 1 seg"); 
+  // }
 }
