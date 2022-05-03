@@ -3,20 +3,16 @@
 #include <vector>
 #include<string>
 #include<map> 
+
+
 #define motor GPIO_NUM_27 //PWM 
 #define Trig GPIO_NUM_12 
 #define Echo GPIO_NUM_14
 
 
 using namespace std;
-/// Configuraciones del motor: 
-const int freq = 1000; //HZ
-const int canal0 = 0; 
-const int resolucion = 10; //bit
-float tiempo_inicio = millis();  
-int duty_cycle = 0; 
-float distancia = 0; 
 
+//Clase base de las funciones de membr: 
 struct Func_meb {
   //Funciones: 
   Func_meb(char *nombre, std::string tipo, float m, float k){
@@ -45,20 +41,6 @@ struct Func_meb {
   // float finish_time = 0; 
 };
 
-//Clase para hacer arreglos de arreglos: 
-struct Arreglo_arreglos
-{
-    //Constructor: 
-    Arreglo_arreglos(vector<float> arreglo) {
-        for (auto i : arreglo) {
-            this->arreglo.push_back(i); 
-        }
-    }
-
-    //atributos: 
-    vector<float> arreglo; 
-};
-
 //Funcion que calcula los valores de pertencia para cada grafica: 
 std::map<int, vector<float>> build_graph(char* Input, vector<Func_meb> &funciones_memb, vector<float> &time, vector<float> &y_values){
     std::map<int, vector<float>> values_to_return;  
@@ -71,7 +53,7 @@ std::map<int, vector<float>> build_graph(char* Input, vector<Func_meb> &funcione
         if (funciones_memb[i].tipo == "exp") {
           Serial.println("EXP"); 
           for (int j = 0; j < time.size(); j++) {
-              double cuadrado_x = pow(time[j] - funciones_memb[i].m, 2);
+              float cuadrado_x = pow(time[j] - funciones_memb[i].m, 2);
               y_values[j] = exp(- funciones_memb[i].k * cuadrado_x); 
           }
           values_to_return.insert({ i, y_values});  
@@ -135,16 +117,37 @@ float calc_dist(int res_prom){
   return dist_prom; 
 }
 
+vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float input, float init_rango){
+  vector<float> fuzzyinputs; 
+  for (size_t i = 0; i < func_membr_map.size(); i++)
+  {
+    auto item = func_membr_map.find(i);  
+    Serial.println(item->second[100*(input - (init_rango))]);
+    auto val_fuzzy = item->second[100*(input - (init_rango))];
+    //Lista con el valor de la distancia fuzzyficado   
+    fuzzyinputs.push_back(val_fuzzy); 
+  }
+  return fuzzyinputs; 
+}
+
 /// Variables que guardan los valores de pertenecia de las funciones de membr: 
 std::map<int, std::vector<float>> salida_values_map; 
 std::map<int, std::vector<float>> error_values_map; 
-std::map<int, std::vector<float>> y_values_map; 
+std::map<int, std::vector<float>> dist_values_map; 
+
+
+/// Configuraciones del PWM asignado a el motor: 
+const float k = 27; 
+const int freq = 1000; //HZ
+const int canal0 = 0; 
+const int resolucion = 10; //bit
+float tiempo_inicio = millis();  
+int duty_cycle = 0; 
 
 void setup()
 {
   Serial.begin(921600);
   //Inicio del tiempo: 
-  const float k = 27; 
   float init_time = 2.5; 
   float finish_time = 48.5;
 
@@ -203,7 +206,7 @@ void setup()
   //Inicia el objeto de la clase Grafica y prepara los valores para crear la grafica de 
   //entrada 1.
   char Input[10] = "Input1";
-  y_values_map = build_graph(Input, funciones_memb, time, y_values);
+  dist_values_map = build_graph(Input, funciones_memb, time, y_values);
 
 
   //Graph error 2:  
@@ -230,14 +233,6 @@ void setup()
   char Nombre_salida[10] = "salida";
   salida_values_map = build_graph(Nombre, salida_func_membr, time, y_values);
 
-  //FUZZYFICAR el ERROR: 
-  for (auto i = 0; i < error_values_map.size(); i++)
-  {
-      auto item = error_values_map.find(i);
-      float error = k - 48.5; //2.5 va a variar porque es la entrada. 
-      Serial.println(item->second[100 * (error + 21.5)]);
-  }
-
   /// PWM resolucion, freq, canal setup. 
   ledcSetup(canal0, freq, resolucion); 
   ledcAttachPin(motor, canal0); 
@@ -248,18 +243,74 @@ void setup()
 }
 
 void loop()
-{
-  //INPUT: 
-  distancia = calc_dist(2);
-  //FUZZIFICACION: 
+{ 
+  std::vector<float> fuzzy_val_dist; 
+  std::vector<float> fuzzy_val_error;
+  std::vector<float> kj; 
 
-  // while (duty_cycle < 1023)
-  // {
-  //   ledcWrite(canal0, duty_cycle++); 
-  //   delay(10); 
-  // }
-  ledcWrite(canal0, 626); 
-  duty_cycle = 0; 
+  //INPUT: 
+  float distancia = calc_dist(1);
+  float error = k - distancia; 
+
+  //FUZZIFICAR la distancia:
+  //Toma el par de valores en la posicion i y la asigna a item, para acceder a el array de valor de <y> 
+  //se usa el el puntero item->second.
+  fuzzy_val_dist = fuzzy_input(dist_values_map, distancia, 2.5);  
+  fuzzy_val_error = fuzzy_input(error_values_map, error, -21.5); 
+
+  //Calculo de KJ:
+  for(auto i: fuzzy_val_dist){
+    for(auto j: fuzzy_val_error){
+      float kj_local = min(i,j); 
+      kj.push_back(kj_local);  
+      Serial.print("KJ: "); 
+      Serial.println(kj_local); 
+    }
+  } 
+
+
+  //Calculo del grado de consistencia 
+
+  //Defuzzificacion:
+  float num_defuzzy = 0; 
+  float den_defuzzy = 0; 
+  vector<float> mult_kj_cj; 
+  vector<float> cj = {
+    7 , 7,
+    7.83, 7,83,
+    8.57, 8.57,
+    9.22, 9.22, 
+    9.96, 9.96, 
+    10.7, 10.7,
+    11.4, 11.4
+  }; 
+
+  for (size_t i = 0; i < kj.size(); i++)
+  {
+    float mult_num = kj[i] * cj[i]; 
+    mult_kj_cj.push_back(mult_num); 
+  }
+  
+  for(auto i: mult_kj_cj){
+    num_defuzzy += i; 
+  }
+  
+  //Denomiandor: 
+  for(auto i: kj){
+    den_defuzzy += i; 
+  }
+
+
+  float v_out = num_defuzzy/den_defuzzy; 
+  Serial.println("v_out"); 
+  Serial.println(v_out); 
+  
+  int duty_cycle = 89.639*v_out - 1.473; 
+
+  ledcWrite(canal0, duty_cycle); 
+  Serial.println("duty_cycle"); 
+  Serial.println(duty_cycle); 
+
   float tiempo_fijo = millis(); 
   // if(tiempo_fijo > tiempo_inicio + 1000){
   //   tiempo_inicio = millis(); 
