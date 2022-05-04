@@ -3,12 +3,24 @@
 #include <vector>
 #include<string>
 #include<map> 
+// #include<WiFi.h>
+// #include<WebServer.h>
+// #include<WebSocketsServer.h>
+
+//Codigo de las paginas: 
+// #include <index.h>
 
 #define motor GPIO_NUM_27 //PWM 
 #define Trig GPIO_NUM_12 
 #define Echo GPIO_NUM_14
 
 using namespace std;
+///Credenciales del punto de acceso: 
+const char* ssid = "Levitador"; 
+// WebServer server(80); 
+// WebSocketsServer webSocketServer(81); 
+// #include<server_functions.h>
+
 
 //Clase base de las funciones de membr: 
 struct Func_meb {
@@ -165,10 +177,30 @@ const int resolucion = 10; //bit
 float tiempo_inicio = millis();  
 int duty_cycle = 0; 
 
+
+// ///Server: 
+// void index(){ 
+//   server.send
+// }
 //////// --------- ////////////
 void setup()
 {
   Serial.begin(921600);
+  // WiFi.mode(WIFI_AP); 
+  // WiFi.softAP(ssid); 
+  // IPAddress miIp = WiFi.softAPIP(); 
+  // Serial.println("IP del AP: "); 
+  // Serial.println(miIp); 
+  // Serial.println(WiFi.localIP()); 
+
+  //Manejo de las peticiones:
+  //server.on("/", index); 
+  // server.begin(); 
+  // webSocketServer.begin();
+  // //Se asigna la funcion de llegada de datos de webserber:  
+  //webSocketServer.onEvent(webSocketEvent); 
+
+  Serial.println("Cargando funciones de membresia: "); 
   //Inicio del tiempo: 
   float init_time = 2.5; 
   float finish_time = 48.5;
@@ -188,10 +220,12 @@ void setup()
   int num_fun = 7; 
   float Espacio_funciones = rango_total/num_fun; 
   vector<float> m; 
-  m.push_back(init_salida_val); 
-  for (size_t i = 0; i < num_fun; i++)
+  m.push_back(init_salida_val);
+  float init_salida = init_salida_val; 
+  
+  for (int i = 0; i < num_fun; i++)
   {
-    float init_salida = init_salida + Espacio_funciones; 
+    init_salida = init_salida + Espacio_funciones; 
     m.push_back(init_salida); 
   }
   
@@ -277,16 +311,18 @@ void setup()
   pinMode(Echo, INPUT); 
 }
 
-//////  --- LOOP --- //// 
+//////  --- LOOP --- //// ///////////// --------
 void loop()
 { 
+  // webSocketServer.loop(); 
+  // server.handleClient(); 
+
   std::vector<float> fuzzy_val_dist; 
   std::vector<float> fuzzy_val_error;
   std::vector<float> kj; 
 
   //INPUT: 
-  // float distancia = calc_dist(1);
-  float distancia = 48.5; 
+  float distancia = calc_dist(1);
   float error = k - distancia; 
 
   //FUZZIFICAR la distancia:
