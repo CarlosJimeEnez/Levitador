@@ -250,7 +250,7 @@ void setup()
   }
 
   char Nombre_salida[10] = "salida";
-  salida_values_map = build_graph(Nombre, salida_func_membr, time, y_values);
+  salida_values_map = build_graph(Nombre_salida, salida_func_membr, time2, y_values);
 
   /// PWM resolucion, freq, canal setup. 
   ledcSetup(canal0, freq, resolucion); 
@@ -296,13 +296,13 @@ void loop()
   float den_defuzzy = 0; 
   vector<float> mult_kj_cj; 
   vector<float> cj = {
-    7 , 7,
-    7.83, 7,83,
-    8.57, 8.57,
-    9.22, 9.22, 
-    9.96, 9.96, 
-    10.7, 10.7,
-    11.4, 11.4
+    5.4 , 5.4,
+    5.88, 5.88,
+    6.32, 6.32,
+    6.7, 6.7, 
+    7.135, 7.135, 
+    7.56, 7.56,
+    8, 8
   }; 
 
   for (size_t i = 0; i < kj.size(); i++)
