@@ -64,11 +64,11 @@ std::map<int, vector<float>> build_graph(char* Input, vector<Func_meb> &funcione
 }
 
 ///Inicio del vector del tiempo: 
-std::vector<float> tiempo(const float init_time, const float finish_time)
+std::vector<float> tiempo(const float init_time, const float finish_time, const float paso)
 {
   //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
   std::vector<float> time;
-  for (float i = init_time; i < finish_time; i += 0.01) {
+  for (float i = init_time; i < finish_time; i += paso) {
     time.push_back(i);
   }
   
@@ -98,10 +98,10 @@ std::vector<float> sal_xval(float init_time, const float finish_time)
   //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
   float rango = finish_time - init_time; 
   float j = init_time; 
-  std::vector<float> time(rango*100, 0);
-  for (float i = 0; i < rango*100; i += 1) {
+  std::vector<float> time(rango*1000, 0);
+  for (float i = 0; i < rango*1000; i += 1) {
     time[i] = j;
-    j = j + 0.01; 
+    j = j + 0.001; 
   }
   
   int32_t length = time.size();
@@ -140,7 +140,8 @@ vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float in
   vector<float> fuzzyinputs; 
   for (size_t i = 0; i < func_membr_map.size(); i++)
   {
-    auto item = func_membr_map.find(i);  
+    auto item = func_membr_map.find(i);
+    Serial.println("Valores fuzzyficados: ");   
     Serial.println(item->second[100*(input - (init_rango))]);
     auto val_fuzzy = item->second[100*(input - (init_rango))];
     //Lista con el valor de la distancia fuzzyficado   
@@ -153,6 +154,7 @@ vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float in
 std::map<int, std::vector<float>> salida_values_map; 
 std::map<int, std::vector<float>> error_values_map; 
 std::map<int, std::vector<float>> dist_values_map; 
+std::vector<Func_meb> salida_func_membr;
 
 
 /// Configuraciones del PWM asignado a el motor: 
@@ -174,11 +176,26 @@ void setup()
   float init_time2 = k - finish_time; 
   float finish_time2 = k - init_time; 
 
+  //Salida configuraciones: 
   float init_salida_val = 5.4; 
-  float finish_salida_val = 8;
-  vector<float> time = tiempo(init_time, finish_time );
+  float finish_salida_val = 9;
+
+  //Funcion para automatizar el desplieuge de las graficas: 
+  vector<float> time = tiempo(init_time, finish_time , 0.01);
   vector<float> y_values(time.size(), 0);
   
+  float rango_total = finish_salida_val - init_salida_val; 
+  int num_fun = 7; 
+  float Espacio_funciones = rango_total/num_fun; 
+  vector<float> m; 
+  m.push_back(init_salida_val); 
+  for (size_t i = 0; i < num_fun; i++)
+  {
+    float init_salida = init_salida + Espacio_funciones; 
+    m.push_back(init_salida); 
+  }
+  
+
 //Funciones de membresia INPUT1: 
   Func_meb fun1("NB", "exp", 2.5, 0.03); 
   Func_meb fun2("NM", "exp", 10.13, 0.04);
@@ -207,16 +224,15 @@ void setup()
   }
 
   //SALIDA funcion membre:  
-    Func_meb fun10("NB", "exp", 5.4, 6);
-    Func_meb fun11("NM", "exp", 5.88, 14);
-    Func_meb fun12("NS", "exp", 6.32, 14);
-    Func_meb fun13("Z", "exp", 6.7, 14);
-    Func_meb fun14("PS", "exp", 7.135, 14);
-    Func_meb fun15("PM", "exp", 7.56, 14);
-    Func_meb fun16("PB", "exp", 8, 14);
+    Func_meb fun10("NB", "exp", m[0], 6);
+    Func_meb fun11("NM", "exp", m[1], 14);
+    Func_meb fun12("NS", "exp", m[2], 14);
+    Func_meb fun13("Z", "exp", m[3], 14);
+    Func_meb fun14("PS", "exp", m[4], 14);
+    Func_meb fun15("PM", "exp", m[5], 14);
+    Func_meb fun16("PB", "exp", m[6], 14);
     Func_meb salida_arreglo[] = { fun10, fun11, fun12, fun13, fun14, fun15, fun16 };
     
-    std::vector<Func_meb> salida_func_membr;
     for (auto fun : salida_arreglo) {
         salida_func_membr.push_back(fun);
         //fun.mostrar_valores(); 
@@ -243,7 +259,7 @@ void setup()
   /// Salida:
   time.clear();
   y_values.clear(); 
-  vector<float> time2 = error_xval(init_salida_val, finish_salida_val);
+  vector<float> time2 = sal_xval(init_salida_val, finish_salida_val);
   for (int i = 0; i < time.size(); i++)
   {
       y_values.push_back(0);
@@ -269,7 +285,8 @@ void loop()
   std::vector<float> kj; 
 
   //INPUT: 
-  float distancia = calc_dist(1);
+  // float distancia = calc_dist(1);
+  float distancia = 48.5; 
   float error = k - distancia; 
 
   //FUZZIFICAR la distancia:
@@ -294,15 +311,17 @@ void loop()
   //Defuzzificacion:
   float num_defuzzy = 0; 
   float den_defuzzy = 0; 
-  vector<float> mult_kj_cj; 
+  vector<float> mult_kj_cj;
+  //Los centroides estan colocados de la forma: 
+  // NB and NB -> NB, NB and PB -> NB 
   vector<float> cj = {
-    5.4 , 5.4,
-    5.88, 5.88,
-    6.32, 6.32,
-    6.7, 6.7, 
-    7.135, 7.135, 
-    7.56, 7.56,
-    8, 8
+    salida_func_membr[0].m , salida_func_membr[0].m,
+    salida_func_membr[1].m, salida_func_membr[1].m,
+    salida_func_membr[2].m, salida_func_membr[2].m,
+    salida_func_membr[3].m, salida_func_membr[3].m, 
+    salida_func_membr[4].m, salida_func_membr[4].m, 
+    salida_func_membr[5].m, salida_func_membr[5].m,
+    salida_func_membr[6].m, salida_func_membr[6].m
   }; 
 
   for (size_t i = 0; i < kj.size(); i++)
@@ -325,7 +344,7 @@ void loop()
   Serial.println("v_out"); 
   Serial.println(v_out); 
   //Conversion del volt salida en el duty cycle del pwm.  
-  int duty_cycle = 89.61*v_out - 0.923; 
+  int duty_cycle = 83.697 * v_out + 62.775 ; 
 
   ledcWrite(canal0, duty_cycle); 
   Serial.println("duty_cycle"); 
