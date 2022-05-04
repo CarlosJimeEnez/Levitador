@@ -4,11 +4,9 @@
 #include<string>
 #include<map> 
 
-
 #define motor GPIO_NUM_27 //PWM 
 #define Trig GPIO_NUM_12 
 #define Echo GPIO_NUM_14
-
 
 using namespace std;
 
@@ -78,7 +76,7 @@ std::vector<float> tiempo(const float init_time, const float finish_time)
 }
 
 //Valores del eje x ERROR: 
-std::vector<float> error_xval(float init_time, const float finish_time)
+std::vector<float> error_xval(float init_time, const float finish_time )
 {
   //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
   float rango = finish_time - init_time; 
@@ -93,6 +91,24 @@ std::vector<float> error_xval(float init_time, const float finish_time)
   int capacity = time.capacity();
   return time;
 }
+
+//Valores del eje x ERROR: 
+std::vector<float> sal_xval(float init_time, const float finish_time)
+{
+  //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
+  float rango = finish_time - init_time; 
+  float j = init_time; 
+  std::vector<float> time(rango*100, 0);
+  for (float i = 0; i < rango*100; i += 1) {
+    time[i] = j;
+    j = j + 0.01; 
+  }
+  
+  int32_t length = time.size();
+  int capacity = time.capacity();
+  return time;
+}
+
 
 //Calculo de la  distancia: 
 float calc_dist(int res_prom){
@@ -117,6 +133,9 @@ float calc_dist(int res_prom){
   return dist_prom; 
 }
 
+//Fuzzyfica la entrada: 
+//Toma la entrada y busca el valor al que corresponde en 
+//los valores fuzzyficados: 
 vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float input, float init_rango){
   vector<float> fuzzyinputs; 
   for (size_t i = 0; i < func_membr_map.size(); i++)
@@ -144,6 +163,7 @@ const int resolucion = 10; //bit
 float tiempo_inicio = millis();  
 int duty_cycle = 0; 
 
+//////// --------- ////////////
 void setup()
 {
   Serial.begin(921600);
@@ -154,10 +174,9 @@ void setup()
   float init_time2 = k - finish_time; 
   float finish_time2 = k - init_time; 
 
-  float init_salida_val = 7; 
-  float finish_salida_val = 11.4;
-
-  vector<float> time = tiempo(init_time, finish_time);
+  float init_salida_val = 5.4; 
+  float finish_salida_val = 8;
+  vector<float> time = tiempo(init_time, finish_time );
   vector<float> y_values(time.size(), 0);
   
 //Funciones de membresia INPUT1: 
@@ -188,13 +207,13 @@ void setup()
   }
 
   //SALIDA funcion membre:  
-    Func_meb fun10("NB", "exp", 7, 2.4);
-    Func_meb fun11("NM", "exp", 7.83, 4);
-    Func_meb fun12("NS", "exp", 8.57, 4.3);
-    Func_meb fun13("Z", "exp", 9.22, 4.3);
-    Func_meb fun14("PS", "exp", 9.96, 4.3);
-    Func_meb fun15("PM", "exp", 10.7, 4.3);
-    Func_meb fun16("PB", "exp", 11.4, 4.3);
+    Func_meb fun10("NB", "exp", 5.4, 6);
+    Func_meb fun11("NM", "exp", 5.88, 14);
+    Func_meb fun12("NS", "exp", 6.32, 14);
+    Func_meb fun13("Z", "exp", 6.7, 14);
+    Func_meb fun14("PS", "exp", 7.135, 14);
+    Func_meb fun15("PM", "exp", 7.56, 14);
+    Func_meb fun16("PB", "exp", 8, 14);
     Func_meb salida_arreglo[] = { fun10, fun11, fun12, fun13, fun14, fun15, fun16 };
     
     std::vector<Func_meb> salida_func_membr;
@@ -223,8 +242,8 @@ void setup()
 
   /// Salida:
   time.clear();
-  y_values.clear();
-  time = tiempo(init_salida_val, finish_salida_val);
+  y_values.clear(); 
+  vector<float> time2 = error_xval(init_salida_val, finish_salida_val);
   for (int i = 0; i < time.size(); i++)
   {
       y_values.push_back(0);
@@ -242,6 +261,7 @@ void setup()
   pinMode(Echo, INPUT); 
 }
 
+//////  --- LOOP --- //// 
 void loop()
 { 
   std::vector<float> fuzzy_val_dist; 
@@ -304,8 +324,8 @@ void loop()
   float v_out = num_defuzzy/den_defuzzy; 
   Serial.println("v_out"); 
   Serial.println(v_out); 
-  
-  int duty_cycle = 89.639*v_out - 1.473; 
+  //Conversion del volt salida en el duty cycle del pwm.  
+  int duty_cycle = 89.61*v_out - 0.923; 
 
   ledcWrite(canal0, duty_cycle); 
   Serial.println("duty_cycle"); 
