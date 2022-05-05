@@ -209,8 +209,8 @@ void setup()
   float finish_time2 = k - init_time; 
 
   //Salida configuraciones: 
-  float init_salida_val = 5.4; 
-  float finish_salida_val = 9;
+  float init_salida_val = 4; 
+  float finish_salida_val = 10;
 
   //Funcion para automatizar el desplieuge de las graficas: 
   vector<float> time = tiempo(init_time, finish_time , 0.01);
@@ -258,13 +258,13 @@ void setup()
   }
 
   //SALIDA funcion membre:  
-    Func_meb fun10("NB", "exp", m[0], 6);
-    Func_meb fun11("NM", "exp", m[1], 14);
-    Func_meb fun12("NS", "exp", m[2], 14);
-    Func_meb fun13("Z", "exp", m[3], 14);
-    Func_meb fun14("PS", "exp", m[4], 14);
-    Func_meb fun15("PM", "exp", m[5], 14);
-    Func_meb fun16("PB", "exp", m[6], 14);
+    Func_meb fun10("NB", "exp", m[0], 5);
+    Func_meb fun11("NM", "exp", m[1], 5);
+    Func_meb fun12("NS", "exp", m[2], 5);
+    Func_meb fun13("Z", "exp", m[3], 5);
+    Func_meb fun14("PS", "exp", m[4], 5);
+    Func_meb fun15("PM", "exp", m[5], 5);
+    Func_meb fun16("PB", "exp", m[6], 5);
     Func_meb salida_arreglo[] = { fun10, fun11, fun12, fun13, fun14, fun15, fun16 };
     
     for (auto fun : salida_arreglo) {
@@ -293,7 +293,7 @@ void setup()
   /// Salida:
   time.clear();
   y_values.clear(); 
-  vector<float> time2 = sal_xval(init_salida_val, finish_salida_val);
+  vector<float> time2 = error_xval(init_salida_val, finish_salida_val);
   for (int i = 0; i < time.size(); i++)
   {
       y_values.push_back(0);
@@ -322,7 +322,7 @@ void loop()
   std::vector<float> kj; 
 
   //INPUT: 
-  float distancia = calc_dist(1);
+  float distancia = calc_dist(5);
   float error = k - distancia; 
 
   //FUZZIFICAR la distancia:
@@ -334,10 +334,7 @@ void loop()
   //Calculo de KJ:
   for(auto i: fuzzy_val_dist){
     for(auto j: fuzzy_val_error){
-      float kj_local = min(i,j); 
-      kj.push_back(kj_local);  
-      Serial.print("KJ: "); 
-      Serial.println(kj_local); 
+      kj.push_back(min(i,j));   
     }
   } 
 
@@ -350,10 +347,12 @@ void loop()
   vector<float> mult_kj_cj;
   //Los centroides estan colocados de la forma: 
   // NB and NB -> NB, NB and PB -> NB 
+  // NM and NB -> NM, NM and PB -> NM 
+  // NS and NB -> NS, NS and PB -> NS 
   vector<float> cj = {
     salida_func_membr[0].m , salida_func_membr[0].m,
+    salida_func_membr[0].m, salida_func_membr[0].m,
     salida_func_membr[1].m, salida_func_membr[1].m,
-    salida_func_membr[2].m, salida_func_membr[2].m,
     salida_func_membr[3].m, salida_func_membr[3].m, 
     salida_func_membr[4].m, salida_func_membr[4].m, 
     salida_func_membr[5].m, salida_func_membr[5].m,
