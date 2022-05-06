@@ -7,8 +7,6 @@ struct Func_meb {
     this ->k = k; 
     this ->m = m; 
     this->tipo = tipo; 
-    // this->init_time = init_time; 
-    // this->finish_time = finish_time; 
     strcpy(this ->nombre, nombre); 
   }
 
@@ -18,13 +16,9 @@ struct Func_meb {
     Serial.println(this->nombre); 
   }
 
-  //friend map<int, vector<double>> build_graph();
-
   //Atributos: 
   char nombre[10] = " ";
   std::string tipo = "";
   float m = 0;
   float k = 0;
-  // float init_time = 0; 
-  // float finish_time = 0; 
 };

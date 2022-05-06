@@ -210,7 +210,7 @@ void loop()
   vector<float> cj = {
     salida_func_membr[0].m , salida_func_membr[0].m,
     salida_func_membr[0].m, salida_func_membr[0].m,
-    salida_func_membr[1].m, salida_func_membr[1].m,
+    salida_func_membr[3].m, salida_func_membr[3].m,
     salida_func_membr[3].m, salida_func_membr[3].m, 
     salida_func_membr[4].m, salida_func_membr[4].m, 
     salida_func_membr[5].m, salida_func_membr[5].m,
@@ -244,9 +244,4 @@ void loop()
   Serial.println(duty_cycle); 
 
   float tiempo_fijo = millis(); 
-  // if(tiempo_fijo > tiempo_inicio + 1000){
-  //   tiempo_inicio = millis(); 
-  //   digitalWrite(led, LOW); 
-  //   Serial.println("Paso 1 seg"); 
-  // }
 }
