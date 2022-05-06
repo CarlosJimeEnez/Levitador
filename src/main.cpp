@@ -2,165 +2,23 @@
 #include <map>
 #include <vector>
 #include<string>
-#include<map> 
-// #include<WiFi.h>
-// #include<WebServer.h>
-// #include<WebSocketsServer.h>
+#include<Func_meb.h>
+#include<functions.h>
 
-//Codigo de las paginas: 
+//Pagina web depandencias: 
+#include<WiFi.h>
+#include<WebServer.h>
+#include<WebSocketsServer.h>
 // #include <index.h>
 
 #define motor GPIO_NUM_27 //PWM 
-#define Trig GPIO_NUM_12 
-#define Echo GPIO_NUM_14
+
 
 using namespace std;
 ///Credenciales del punto de acceso: 
 const char* ssid = "Levitador"; 
-// WebServer server(80); 
-// WebSocketsServer webSocketServer(81); 
-// #include<server_functions.h>
-
-
-//Clase base de las funciones de membr: 
-struct Func_meb {
-  //Funciones: 
-  Func_meb(char *nombre, std::string tipo, float m, float k){
-    this ->k = k; 
-    this ->m = m; 
-    this->tipo = tipo; 
-    // this->init_time = init_time; 
-    // this->finish_time = finish_time; 
-    strcpy(this ->nombre, nombre); 
-  }
-
-  void mostrar_valores(){
-    Serial.println(this->k);
-    Serial.println(this->m); 
-    Serial.println(this->nombre); 
-  }
-
-  //friend map<int, vector<double>> build_graph();
-
-  //Atributos: 
-  char nombre[10] = " ";
-  std::string tipo = "";
-  float m = 0;
-  float k = 0;
-  // float init_time = 0; 
-  // float finish_time = 0; 
-};
-
-//Funcion que calcula los valores de pertencia para cada grafica: 
-std::map<int, vector<float>> build_graph(char* Input, vector<Func_meb> &funciones_memb, vector<float> &time, vector<float> &y_values){
-    std::map<int, vector<float>> values_to_return;  
-    Serial.print("Nombre: "); 
-    Serial.println(Input); 
-    Serial.print("Funcioens de membre: ");
-    Serial.println(funciones_memb[0].k);  
-    //Recorrido por todas las funciones de membr, toma sus atributos y calcula el valor de pertenencia de cada uno: 
-    for (int i = 0; i < funciones_memb.size(); i++) {
-        if (funciones_memb[i].tipo == "exp") {
-          Serial.println("EXP"); 
-          for (int j = 0; j < time.size(); j++) {
-              float cuadrado_x = pow(time[j] - funciones_memb[i].m, 2);
-              y_values[j] = exp(- funciones_memb[i].k * cuadrado_x); 
-          }
-          values_to_return.insert({ i, y_values});  
-        }
-        else{
-            Serial.println("No es exp"); 
-        }
-    }
-    return values_to_return; 
-}
-
-///Inicio del vector del tiempo: 
-std::vector<float> tiempo(const float init_time, const float finish_time, const float paso)
-{
-  //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
-  std::vector<float> time;
-  for (float i = init_time; i < finish_time; i += paso) {
-    time.push_back(i);
-  }
-  
-  return time;
-}
-
-//Valores del eje x ERROR: 
-std::vector<float> error_xval(float init_time, const float finish_time )
-{
-  //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
-  float rango = finish_time - init_time; 
-  float j = init_time; 
-  std::vector<float> time(rango*100, 0);
-  for (float i = 0; i < rango*100; i += 1) {
-    time[i] = j;
-    j = j + 0.01; 
-  }
-  
-  int32_t length = time.size();
-  int capacity = time.capacity();
-  return time;
-}
-
-//Valores del eje x ERROR: 
-std::vector<float> sal_xval(float init_time, const float finish_time)
-{
-  //Inicio del vector x: Se les dan valores de 0 - 10 con espaciado de 0.001
-  float rango = finish_time - init_time; 
-  float j = init_time; 
-  std::vector<float> time(rango*1000, 0);
-  for (float i = 0; i < rango*1000; i += 1) {
-    time[i] = j;
-    j = j + 0.001; 
-  }
-  
-  int32_t length = time.size();
-  int capacity = time.capacity();
-  return time;
-}
-
-
-//Calculo de la  distancia: 
-float calc_dist(int res_prom){
-  float dist_prom = 0; 
-  for (size_t i = 0; i < res_prom; i++)
-  {
-    //Calcual la distancia:
-    digitalWrite(Trig, HIGH); 
-    delayMicroseconds(10); 
-    digitalWrite(Trig, LOW); 
-    //Medimos la distancia: 
-    float tiempo  = pulseIn(Echo, HIGH); 
-    //Convertimos la distancia en cm:  
-    float distancia = tiempo/59; 
-    Serial.print("Distancia: ");
-    Serial.println(distancia); 
-    delay(60);
-    dist_prom += distancia; 
-  }
-  dist_prom = dist_prom/res_prom; 
-  
-  return dist_prom; 
-}
-
-//Fuzzyfica la entrada: 
-//Toma la entrada y busca el valor al que corresponde en 
-//los valores fuzzyficados: 
-vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float input, float init_rango){
-  vector<float> fuzzyinputs; 
-  for (size_t i = 0; i < func_membr_map.size(); i++)
-  {
-    auto item = func_membr_map.find(i);
-    Serial.println("Valores fuzzyficados: ");   
-    Serial.println(item->second[100*(input - (init_rango))]);
-    auto val_fuzzy = item->second[100*(input - (init_rango))];
-    //Lista con el valor de la distancia fuzzyficado   
-    fuzzyinputs.push_back(val_fuzzy); 
-  }
-  return fuzzyinputs; 
-}
+WebServer server(80); 
+WebSocketsServer webSocketServer(81); 
 
 /// Variables que guardan los valores de pertenecia de las funciones de membr: 
 std::map<int, std::vector<float>> salida_values_map; 
@@ -258,13 +116,13 @@ void setup()
   }
 
   //SALIDA funcion membre:  
-    Func_meb fun10("NB", "exp", m[0], 5);
-    Func_meb fun11("NM", "exp", m[1], 5);
-    Func_meb fun12("NS", "exp", m[2], 5);
-    Func_meb fun13("Z", "exp", m[3], 5);
-    Func_meb fun14("PS", "exp", m[4], 5);
-    Func_meb fun15("PM", "exp", m[5], 5);
-    Func_meb fun16("PB", "exp", m[6], 5);
+    Func_meb fun10("NB", "exp", m[0], 4);
+    Func_meb fun11("NM", "exp", m[1], 4);
+    Func_meb fun12("NS", "exp", m[2], 4);
+    Func_meb fun13("Z", "exp", m[3], 4);
+    Func_meb fun14("PS", "exp", m[4], 4);
+    Func_meb fun15("PM", "exp", m[5], 4);
+    Func_meb fun16("PB", "exp", m[6], 4);
     Func_meb salida_arreglo[] = { fun10, fun11, fun12, fun13, fun14, fun15, fun16 };
     
     for (auto fun : salida_arreglo) {
@@ -278,7 +136,7 @@ void setup()
   dist_values_map = build_graph(Input, funciones_memb, time, y_values);
 
 
-  //Graph error 2:  
+  /////---- Graph error 2:  
   time.clear(); 
   y_values.clear(); 
   time = error_xval(init_time2, finish_time2);
@@ -290,7 +148,7 @@ void setup()
   error_values_map = build_graph(Nombre, error_func_membr, time, y_values);
   
 
-  /// Salida:
+  ////// -----  Salida:
   time.clear();
   y_values.clear(); 
   vector<float> time2 = error_xval(init_salida_val, finish_salida_val);
