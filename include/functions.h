@@ -1,3 +1,4 @@
+#include<Arduino.h>
 //FUNCIONES USADAS 
 //Funcion que calcula los valores de pertencia para cada grafica: 
 #include <map>
