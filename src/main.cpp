@@ -4,8 +4,8 @@
 #include<string>
 #include<map> 
 
-#include<functions.h>
 #include<Func_meb.h>
+#include<functions.h>
 
 #define motor GPIO_NUM_27 //PWM 
 #define Trig GPIO_NUM_12 
@@ -31,7 +31,7 @@ int duty_cycle = 0;
 ////
 void setup()
 {
-  Serial.begin(921600);
+  Serial.begin(9600);
   
   Serial.println("Cargando funciones de membresia: "); 
   //Inicio del tiempo: 
@@ -42,8 +42,8 @@ void setup()
   float finish_time2 = k - init_time; 
 
   //Salida configuraciones: 
-  float init_salida_val = 5.4; 
-  float finish_salida_val = 9;
+  float init_salida_val = 4; 
+  float finish_salida_val = 10;
 
   //Funcion para automatizar el desplieuge de las graficas: 
   vector<float> time = tiempo(init_time, finish_time , 0.01);
@@ -126,7 +126,7 @@ void setup()
   /// Salida:
   time.clear();
   y_values.clear(); 
-  vector<float> time2 = sal_xval(init_salida_val, finish_salida_val);
+  vector<float> time2 = error_xval(init_salida_val, finish_salida_val);
   for (int i = 0; i < time.size(); i++)
   {
       y_values.push_back(0);
