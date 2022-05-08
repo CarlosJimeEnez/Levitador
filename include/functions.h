@@ -100,3 +100,5 @@ vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float in
   }
   return fuzzyinputs; 
 }
+
+
