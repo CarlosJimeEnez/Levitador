@@ -87,14 +87,14 @@ float calc_dist(int res_prom){
 //Fuzzyfica la entrada: 
 //Toma la entrada y busca el valor al que corresponde en 
 //los valores fuzzyficados: 
-vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float input, float init_rango){
+vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float input, float init_rango, int conts){
   vector<float> fuzzyinputs; 
   for (size_t i = 0; i < func_membr_map.size(); i++)
   {
     auto item = func_membr_map.find(i);
     Serial.println("Valores fuzzyficados: ");   
-    Serial.println(item->second[100*(input - (init_rango))]);
-    auto val_fuzzy = item->second[100*(input - (init_rango))];
+    Serial.println(item->second[conts*(input - (init_rango))]);
+    auto val_fuzzy = item->second[conts*(input - (init_rango))];
     //Lista con el valor de la distancia fuzzyficado   
     fuzzyinputs.push_back(val_fuzzy); 
   }

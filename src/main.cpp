@@ -79,7 +79,8 @@ void setup()
   //ERROR func_membr: 
   Func_meb fun8("NB", "exp", -21.5, 0.004);
   Func_meb fun9("NS", "exp", 24.5, 0.004);
-  Func_meb error_arreglo[] = { fun8, fun9 };
+  Func_meb fun18("Z", "exp", 0, 0.1);
+  Func_meb error_arreglo[] = { fun8, fun9, fun18};
   std::vector<Func_meb> error_func_membr;
   for (auto fun : error_arreglo) {
       error_func_membr.push_back(fun);
@@ -174,9 +175,9 @@ void loop()
   //FUZZIFICAR la distancia:
   //Toma el par de valores en la posicion i y la asigna a item, para acceder a el array de valor de <y> 
   //se usa el el puntero item->second.
-  fuzzy_val_dist = fuzzy_input(dist_values_map, distancia, 2.5);  
-  fuzzy_val_error = fuzzy_input(error_values_map, error, -21.5); 
-  fuzzy_val_hecho = fuzzy_input(hecho_values_map, distancia, 2.5); 
+  fuzzy_val_dist = fuzzy_input(dist_values_map, distancia, 2.5, 100);  
+  fuzzy_val_error = fuzzy_input(error_values_map, error, -21.5, 100); 
+  fuzzy_val_hecho = fuzzy_input(hecho_values_map, distancia, 2.5, 10); 
 
   //Calculo de KJ:
   for(auto i: fuzzy_val_dist){
@@ -187,31 +188,31 @@ void loop()
   } 
 
   Serial.println("Here"); 
-  //Calculo del grado de consistencia 
-  for(auto i: kj){
-    alpha_j.push_back(min(fuzzy_val_hecho[0], i)); 
-  }
+  // //Calculo del grado de consistencia 
+  // for(auto i: kj){
+  //   alpha_j.push_back(max(min(fuzzy_val_hecho[0], i))); 
+  // }
 
   //Defuzzificacion:
   float num_defuzzy = 0; 
   float den_defuzzy = 0; 
   vector<float> mult_kj_cj;
   //Los centroides estan colocados de la forma: 
-  // NB and NB -> NB, NB and PB -> NB 
-  // NM and NB -> NB, NM and PB -> NB 
+  // NB and NB -> NB, NB and PB -> NB, NB and Z -> NB,  
+  // NM and NB -> NB, NM and PB -> NB , NM and Z -> NB
   vector<float> cj = {
-    salida_func_membr[0].m , salida_func_membr[0].m,
-    salida_func_membr[0].m, salida_func_membr[0].m,
-    salida_func_membr[2].m, salida_func_membr[2].m,
-    salida_func_membr[3].m, salida_func_membr[3].m, 
-    salida_func_membr[4].m, salida_func_membr[4].m, 
-    salida_func_membr[5].m, salida_func_membr[5].m,
-    salida_func_membr[6].m, salida_func_membr[6].m
+    salida_func_membr[0].m , salida_func_membr[0].m, salida_func_membr[0].m,
+    salida_func_membr[0].m, salida_func_membr[0].m,  salida_func_membr[0].m,
+    salida_func_membr[2].m, salida_func_membr[2].m,  salida_func_membr[2].m,
+    salida_func_membr[3].m, salida_func_membr[3].m,  salida_func_membr[3].m,
+    salida_func_membr[4].m, salida_func_membr[4].m,  salida_func_membr[4].m,
+    salida_func_membr[5].m, salida_func_membr[5].m, salida_func_membr[5].m,
+    salida_func_membr[6].m, salida_func_membr[6].m,  salida_func_membr[6].m,
   }; 
 
   for (size_t i = 0; i < kj.size(); i++)
   {
-    float mult_num = alpha_j[i] * cj[i]; 
+    float mult_num = kj[i] * cj[i]; 
     mult_kj_cj.push_back(mult_num); 
   }
   
