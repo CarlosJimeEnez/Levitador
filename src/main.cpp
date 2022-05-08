@@ -49,16 +49,17 @@ void setup()
   vector<float> time = tiempo(init_time, finish_time , 0.01);
   vector<float> y_values(time.size(), 0);
   
+  //Funcion para automatizar el despliegue de funciones:
   float rango_total = finish_salida_val - init_salida_val; 
   int num_fun = 7; 
-  float Espacio_funciones = rango_total/num_fun; 
-  vector<float> m; 
+  float espacio_entre_func = rango_total/num_fun; 
+  vector<float> m; //Valor donde se coloca la funcion de membresia. 
   m.push_back(init_salida_val);
-  float init_salida = init_salida_val; 
   
+  float init_salida = init_salida_val; 
   for (int i = 0; i < num_fun; i++)
   {
-    init_salida = init_salida + Espacio_funciones; 
+    init_salida = init_salida + espacio_entre_func; 
     m.push_back(init_salida); 
   }
   
@@ -92,17 +93,16 @@ void setup()
 
   //SALIDA funcion membre:  
     Func_meb fun10("NB", "exp", m[0], 6);
-    Func_meb fun11("NM", "exp", m[1], 14);
-    Func_meb fun12("NS", "exp", m[2], 14);
-    Func_meb fun13("Z", "exp", m[3], 14);
-    Func_meb fun14("PS", "exp", m[4], 14);
-    Func_meb fun15("PM", "exp", m[5], 14);
-    Func_meb fun16("PB", "exp", m[6], 14);
+    Func_meb fun11("NM", "exp", m[1], 5);
+    Func_meb fun12("NS", "exp", m[2], 5);
+    Func_meb fun13("Z",  "exp", m[3], 5);
+    Func_meb fun14("PS", "exp", m[4], 5);
+    Func_meb fun15("PM", "exp", m[5], 5);
+    Func_meb fun16("PB", "exp", m[6], 5);
     Func_meb salida_arreglo[] = { fun10, fun11, fun12, fun13, fun14, fun15, fun16 };
     
     for (auto fun : salida_arreglo) {
         salida_func_membr.push_back(fun);
-        //fun.mostrar_valores(); 
     }
 
   //Inicia el objeto de la clase Grafica y prepara los valores para crear la grafica de 
@@ -143,7 +143,7 @@ void setup()
   pinMode(Echo, INPUT); 
 }
 
-//////  --- LOOP --- //// ///////////// --------
+//////////  --- LOOP --- //// ///////////// --------
 void loop()
 { 
 
@@ -165,9 +165,7 @@ void loop()
   for(auto i: fuzzy_val_dist){
     for(auto j: fuzzy_val_error){
       float kj_local = min(i,j); 
-      kj.push_back(kj_local);  
-      Serial.print("KJ: "); 
-      Serial.println(kj_local); 
+      kj.push_back(kj_local);   
     }
   } 
 
@@ -180,6 +178,7 @@ void loop()
   vector<float> mult_kj_cj;
   //Los centroides estan colocados de la forma: 
   // NB and NB -> NB, NB and PB -> NB 
+  // NM and NB -> NB, NM and PB -> NB 
   vector<float> cj = {
     salida_func_membr[0].m , salida_func_membr[0].m,
     salida_func_membr[0].m, salida_func_membr[0].m,
