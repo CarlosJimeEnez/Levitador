@@ -47,10 +47,6 @@ void setup()
   float init_salida_val = 4; 
   float finish_salida_val = 10;
   
-  //Hecho configuraciones: 
-  float init_hecho_val = 2.5; 
-  float finish_salida_val = 48.5; 
-  
   //Funcion para automatizar el despliegue de funciones:
   float rango_total = finish_salida_val - init_salida_val; 
   int num_fun = 7; 
@@ -118,6 +114,16 @@ void setup()
   char Input[10] = "Input1";
   dist_values_map = build_graph(Input, funciones_memb, time, y_values);
 
+  ////Hecho: 
+  char Nombre_hecho[10] = "Hecho";
+  time.clear(); 
+  y_values.clear(); 
+  time = tiempo(init_time, finish_time , 0.1); 
+  for (int i = 0; i < time.size(); i++)
+  {
+      y_values.push_back(0); 
+  }
+  hecho_values_map = build_graph(Nombre_hecho, hecho_func_membr, time, y_values);
 
   //Graph error 2:  
   time.clear(); 
@@ -142,17 +148,6 @@ void setup()
   char Nombre_salida[10] = "salida";
   salida_values_map = build_graph(Nombre_salida, salida_func_membr, time2, y_values);
 
-  /// Hecho:
-  time2.clear();
-  y_values.clear(); 
-  vector<float> time2 = error_xval(init_hecho_val, finish_salida_val);
-  for (int i = 0; i < time.size(); i++)
-  {
-      y_values.push_back(0);
-  }
-  char Nombre_hecho[10] = "Hecho";
-  hecho_values_map = build_graph(Nombre_hecho, hecho_func_membr, time2, y_values);
-
   /// PWM resolucion, freq, canal setup. 
   ledcSetup(canal0, freq, resolucion); 
   ledcAttachPin(motor, canal0); 
@@ -170,6 +165,7 @@ void loop()
   std::vector<float> fuzzy_val_error;
   std::vector<float> fuzzy_val_hecho;
   std::vector<float> kj; 
+  std::vector<float> alpha_j; 
 
   //INPUT: 
   float distancia = calc_dist(1);
@@ -190,8 +186,11 @@ void loop()
     }
   } 
 
+  Serial.println("Here"); 
   //Calculo del grado de consistencia 
-  
+  for(auto i: kj){
+    alpha_j.push_back(min(fuzzy_val_hecho[0], i)); 
+  }
 
   //Defuzzificacion:
   float num_defuzzy = 0; 
@@ -212,7 +211,7 @@ void loop()
 
   for (size_t i = 0; i < kj.size(); i++)
   {
-    float mult_num = kj[i] * cj[i]; 
+    float mult_num = alpha_j[i] * cj[i]; 
     mult_kj_cj.push_back(mult_num); 
   }
   
