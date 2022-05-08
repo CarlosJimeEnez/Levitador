@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include<string>
+
 #define Trig GPIO_NUM_12 
 #define Echo GPIO_NUM_14
 
@@ -41,9 +42,6 @@ std::vector<float> tiempo(const float init_time, const float finish_time, const 
   
   return time;
 }
-
-
-
 
 //Valores del eje x ERROR: 
 std::vector<float> error_xval(float init_time, const float finish_time )
@@ -101,3 +99,4 @@ vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float in
   }
   return fuzzyinputs; 
 }
+
