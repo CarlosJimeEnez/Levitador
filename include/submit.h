@@ -166,6 +166,4 @@ String submit = R"***(
 </body>
 
 </html>
-
-</html>
 )***"; 
