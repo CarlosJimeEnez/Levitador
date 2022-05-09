@@ -169,7 +169,7 @@ void loop()
   std::vector<float> alpha_j; 
 
   //INPUT: 
-  float distancia = calc_dist(1);
+  float distancia = calc_dist(5);
   float error = k - distancia; 
 
   //FUZZIFICAR la distancia:
