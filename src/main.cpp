@@ -22,7 +22,7 @@ std::vector<Func_meb> salida_func_membr;
 
 
 /// Configuraciones del PWM asignado a el motor: 
-const float k = 27; 
+const float k = 25; 
 const int freq = 1000; //HZ
 const int canal0 = 0; 
 const int resolucion = 10; //bit
@@ -45,7 +45,7 @@ void setup()
 
   //Salida configuraciones: 
   float init_salida_val = 4; 
-  float finish_salida_val = 10;
+  float finish_salida_val = 9;
   
   //Funcion para automatizar el despliegue de funciones:
   float rango_total = finish_salida_val - init_salida_val; 
@@ -62,13 +62,13 @@ void setup()
   }
   
 //Funciones de membresia INPUT1: 
-  Func_meb fun1("NB", "exp", 2.5, 0.03); 
+  Func_meb fun1("NB", "exp", init_time, 0.03); 
   Func_meb fun2("NM", "exp", 10.13, 0.04);
-  Func_meb fun3("NS", "exp", 19.71, 0.04);
-  Func_meb fun4("Z", "exp", 27, 0.09);
-  Func_meb fun5("PS", "exp", 33.6, 0.05);
-  Func_meb fun6("PM", "exp", 40.87, 0.04);
-  Func_meb fun7("PB", "exp", 48.5, 0.03);
+  Func_meb fun3("NS", "exp", 17.51, 0.04);
+  Func_meb fun4("Z", "exp", k, 0.09);
+  Func_meb fun5("PS", "exp", 31.9, 0.05);
+  Func_meb fun6("PM", "exp", 30.85, 0.04);
+  Func_meb fun7("PB", "exp", finish_time, 0.03);
   Func_meb arreglo[] = { fun1, fun2, fun3, fun4, fun5, fun6, fun7};
   std::vector<Func_meb> funciones_memb;
   for (auto fun : arreglo) {
@@ -77,8 +77,8 @@ void setup()
   }
 
   //ERROR func_membr: 
-  Func_meb fun8("NB", "exp", -21.5, 0.004);
-  Func_meb fun9("NS", "exp", 24.5, 0.004);
+  Func_meb fun8("NB", "exp", init_time2, 0.004);
+  Func_meb fun9("NS", "exp", finish_time2, 0.004);
   Func_meb fun18("Z", "exp", 0, 0.1);
   Func_meb error_arreglo[] = { fun8, fun9, fun18};
   std::vector<Func_meb> error_func_membr;
@@ -101,7 +101,7 @@ void setup()
     }
 
   //Hecho funciones membr: 
-  Func_meb fun17("Hecho", "exp", 27, 0.1);
+  Func_meb fun17("Hecho", "exp", 25, 0.1);
   Func_meb hecho_arreglo[] = {fun17};
   std::vector<Func_meb> hecho_func_membr;
   for (auto fun : hecho_arreglo) {
@@ -201,9 +201,10 @@ void loop()
   // NB and NB -> NB, NB and PB -> NB, NB and Z -> NB,  
   // NM and NB -> NB, NM and PB -> NB , NM and Z -> NB
   vector<float> cj = {
+    //ERROR: NB                     //NM                    //Z
     salida_func_membr[0].m , salida_func_membr[0].m, salida_func_membr[0].m,
     salida_func_membr[0].m, salida_func_membr[0].m,  salida_func_membr[0].m,
-    salida_func_membr[2].m, salida_func_membr[2].m,  salida_func_membr[2].m,
+    salida_func_membr[2].m, salida_func_membr[2].m,  salida_func_membr[0].m,
     salida_func_membr[3].m, salida_func_membr[3].m,  salida_func_membr[3].m,
     salida_func_membr[4].m, salida_func_membr[4].m,  salida_func_membr[4].m,
     salida_func_membr[5].m, salida_func_membr[5].m, salida_func_membr[5].m,
