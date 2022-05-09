@@ -47,6 +47,10 @@ void setup()
   float init_salida_val = 4; 
   float finish_salida_val = 9;
   
+  //Velocidad configuraciones: 
+  float init_vel_time = -5; 
+  float finish_vel_time = 5;
+  
   //Funcion para automatizar el despliegue de funciones:
   float rango_total = finish_salida_val - init_salida_val; 
   int num_fun = 7; 
@@ -108,6 +112,17 @@ void setup()
       hecho_func_membr.push_back(fun);
   }
 
+  //Velocidad funciones membr: 
+  Func_meb fun19("NS", "exp", init_vel_time, 0.09);
+  Func_meb fun20("Z", "exp", 0, 1);
+  Func_meb fun21("PS", "exp", finish_vel_time, 0.09);
+  Func_meb vel_arreglo[] = {fun18, fun19, fun20};
+  std::vector<Func_meb> vel_func_membr;
+  for (auto fun : vel_arreglo) {
+      vel_func_membr.push_back(fun);
+      //fun.mostrar_valores(); 
+  }
+
   //Inicia el objeto de la clase Grafica y prepara los valores para crear la grafica de 
   //entrada 1.
   vector<float> time = tiempo(init_time, finish_time , 0.01);
@@ -149,6 +164,17 @@ void setup()
   char Nombre_salida[10] = "salida";
   salida_values_map = build_graph(Nombre_salida, salida_func_membr, time2, y_values);
 
+  //Velocidad: 
+  time.clear(); 
+  y_values.clear(); 
+  time = tiempo(init_vel_time, finish_vel_time, 0.1);
+  for (int i = 0; i < time.size(); i++)
+  {
+      y_values.push_back(0);
+  }
+  char Nombre_velocidad[10] = "salida";
+  salida_values_map = build_graph(Nombre_velocidad, vel_func_membr, time, y_values);
+
   /// PWM resolucion, freq, canal setup. 
   ledcSetup(canal0, freq, resolucion); 
   ledcAttachPin(motor, canal0); 
@@ -169,8 +195,24 @@ void loop()
   std::vector<float> alpha_j; 
 
   //INPUT: 
-  float distancia = calc_dist(1);
+  float distancia = calc_dist(5);
   float error = k - distancia; 
+
+  
+  // //Velocidad: 
+  // float vel = 0;
+  // int16_t time1 = millis();
+  // double pos1 = distancia * 10;  
+  // delay(50); 
+  // double pos2 = calc_dist(1) * 10; 
+  // int16_t time2 = millis(); 
+  
+  // vel =  (pos2 - pos1)/(time2 - time1); 
+  // Serial.print("VEL: -------------------------------> "); 
+  // Serial.println(vel);
+  // Serial.print("Time2: "); 
+  // Serial.println(time2);
+
 
   //FUZZIFICAR la distancia:
   //Toma el par de valores en la posicion i y la asigna a item, para acceder a el array de valor de <y> 
@@ -227,12 +269,12 @@ void loop()
   }
 
   float v_out = num_defuzzy/den_defuzzy; 
-  Serial.println("v_out"); 
-  Serial.println(v_out); 
+ // Serial.println("v_out"); 
+ // Serial.println(v_out); 
   //Conversion del volt salida en el duty cycle del pwm.  
   int duty_cycle = 83.697 * v_out + 62.775 ; 
 
   ledcWrite(canal0, duty_cycle); 
-  Serial.println("duty_cycle"); 
-  Serial.println(duty_cycle); 
+ // Serial.println("duty_cycle"); 
+ // Serial.println(duty_cycle); 
 }

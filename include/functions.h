@@ -11,14 +11,14 @@
 using namespace std; 
 std::map<int, vector<float>> build_graph(char* Input, vector<Func_meb> &funciones_memb, vector<float> &time, vector<float> &y_values){
     std::map<int, vector<float>> values_to_return;  
-    Serial.print("Nombre: "); 
-    Serial.println(Input); 
-    Serial.print("Funcioens de membre: ");
-    Serial.println(funciones_memb[0].k);  
+ //   Serial.print("Nombre: "); 
+//    Serial.println(Input); 
+//    Serial.print("Funcioens de membre: ");
+  //  Serial.println(funciones_memb[0].k);  
     //Recorrido por todas las funciones de membr, toma sus atributos y calcula el valor de pertenencia de cada uno: 
     for (int i = 0; i < funciones_memb.size(); i++) {
         if (funciones_memb[i].tipo == "exp") {
-          Serial.println("EXP"); 
+     //     Serial.println("EXP"); 
           for (int j = 0; j < time.size(); j++) {
               float cuadrado_x = pow(time[j] - funciones_memb[i].m, 2);
               y_values[j] = exp(- funciones_memb[i].k * cuadrado_x); 
@@ -92,8 +92,8 @@ vector<float> fuzzy_input(std::map<int, vector<float>>& func_membr_map, float in
   for (size_t i = 0; i < func_membr_map.size(); i++)
   {
     auto item = func_membr_map.find(i);
-    Serial.println("Valores fuzzyficados: ");   
-    Serial.println(item->second[conts*(input - (init_rango))]);
+    //Serial.println("Valores fuzzyficados: ");   
+    //Serial.println(item->second[conts*(input - (init_rango))]);
     auto val_fuzzy = item->second[conts*(input - (init_rango))];
     //Lista con el valor de la distancia fuzzyficado   
     fuzzyinputs.push_back(val_fuzzy); 
