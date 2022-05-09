@@ -55,32 +55,18 @@ void callback(char *topic, byte *payload, unsigned int length) {
  Serial.println("-----------------------");
 }
 
-/////////////////////
-
-// void loop2(void *args){
-//   while (true)
-//   {
-//     Serial.println("\t \t \t Se esta corriendo en el nucleo" + String(xPortGetCoreID()));
-//     delay(100);  
-//   }
-//   vTaskDelay(10); 
-// }
-
 
 void setup() //////// Setup ////////////
 {
-  // //Inicio de una tarea en paralelo: 
-  // xTaskCreatePinnedToCore(
-  //   loop2,
-  //   "Task2", 
-  //   1000,
-  //   NULL, 
-  //   1, //Prioridad 
-  //   &Task1, 
-  //   0
-  // );
-
   Serial.begin(9600);
+
+  // WiFi.begin(ssid, password); 
+  // while (WiFi.status() != WL_CONNECTED)
+  // {
+  //   delay(500); 
+  //   Serial.println("Connected to WiFi"); 
+  // }
+  
 
   Serial.println("Cargando funciones de membresia: "); 
   //Input 1 vectores: 
