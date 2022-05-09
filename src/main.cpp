@@ -7,11 +7,7 @@
 
 //Pagina web depandencias: 
 #include<WiFi.h>
-#include<WebServer.h>
-#include<WebSocketsServer.h>
-#include<submit.h>
-#include<control.h>
-// #include <index.h>
+#include<PubSubClient.h>
 
 #define motor GPIO_NUM_27 //PWM 
 
@@ -20,18 +16,17 @@ using namespace std;
 //Declaracion de una tarea que corre paralelamente a el loop(): 
 //TaskHandle_t Task1; 
 
-///Credenciales del punto de acceso:
 //Parametros de red: 
-String ip ;
-IPAddress ipStatic(192,168,100,82);
-IPAddress ipGateway(192,168,0,1);
-IPAddress subnet(255,255,255,0); 
-const char* ssid = "Levitador"; //Nombre del punto de acceso.  
-char* password;
-char* nombre; 
- 
-WebServer server(80); 
-WebSocketsServer webSocket(81); 
+const char *ssid = "RS_NETWORK_2_2.4GHZ"; //Nombre Red 
+const char *password = "rsautomation2017";  //Contraseña
+const char *mqtt_broker = "broker.emqx.io";
+const char *topic = "esp32/test";
+const char *mqtt_username = "emqx";
+const char *mqtt_password = "public";
+const int mqtt_port = 1883;
+
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 /// Variables que guardan los valores de pertenecia de las funciones de membr: 
 std::map<int, std::vector<float>> salida_values_map; 
@@ -47,145 +42,48 @@ const int resolucion = 10; //bit
 float tiempo_inicio = millis();  
 int duty_cycle = 0; 
 
-//Creacion de un punto de acceso: 
-void ap_mode(){
-  WiFi.softAP(ssid); 
-  IPAddress miIP = WiFi.softAPIP(); //
-  ip = miIP.toString(); 
-  Serial.println("IP APoint"); 
-  Serial.println(miIP);
-  Serial.println(WiFi.localIP()); 
+void callback(char *topic, byte *payload, unsigned int length) {
+ Serial.print("Message arrived in topic: ");
+ Serial.println(topic);
+ Serial.print("Message:");
+ for (int i = 0; i < length; i++) {
+     Serial.print((char) payload[i]);
+ }
+ Serial.println();
+ Serial.println("-----------------------");
 }
-
-void raiz(){
-  String ip_AP = "192.168.4.1"; 
-  if(ip == ip_AP){
-    server.send(200, "text/html", submit);  
-    Serial.println("Submit");
-  }else{ 
-    server.send(200,"text/html", control);
-    Serial.println("Control root"); 
-  }
-}
-
-//Websockets functions: 
-//Manejo de las peticiones de websockets: 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t welength)
-{
-  String payloadString = (char *)payload;
-  
-  if(type == WStype_TEXT) 
-  {
-    // Que tipo de conexion es: 
-    switch(type) {
-
-      // Client has disconnected
-      case WStype_DISCONNECTED:
-        Serial.printf("[%u] Disconnected!\n", num);
-        break;
-
-      // New client has connected
-      case WStype_CONNECTED:
-        {
-          IPAddress ip = webSocket.remoteIP(num);
-          Serial.printf("[%u] Connection from ", num);
-          Serial.println(ip.toString());
-        }
-        break;
-
-      // Echo text message back to client
-      case WStype_TEXT:
-        { 
-          Serial.printf("[%u] Text: %s\n", num, payload);      
-          char str[30]; //Usado para dividir cadena de entrada del websocket. 
-          for (int i = 0; i < payloadString.length(); i++)
-          {
-            str[i] = {payloadString[i]};
-          }  
-
-          nombre = strtok(str, ","); 
-          password = strtok(NULL, ""); 
-
-          //Intenta conectarse a la red: 
-          Serial.printf("nombre: %s, contraseña: %s",nombre, password); 
-          WiFi.config(ipStatic, ipGateway, subnet);
-          WiFi.begin(nombre, password); 
-          Serial.print("\n\r ....");
-          int time_finish = 0; 
-          unsigned long int actual_time = millis();
-          unsigned long int prev_time = millis();
-          while ((WiFi.status() != WL_CONNECTED) && (time_finish != 1)){ 
-            actual_time = millis();
-            delay(200);
-            Serial.println("No connected");
-            if(actual_time - prev_time > 13000){
-                prev_time = actual_time;
-                time_finish = 1;
-                Serial.println("Acabo el tiempo"); 
-            } 
-          }
-          //No se pudo conectar: 
-          if(WiFi.status() != WL_CONNECTED){
-            Serial.println("No se pudo conectar"); 
-            WiFi.disconnect(); 
-          }
-          //Se conecto: 
-          else{
-            Serial.println("Wifi conectada en la ip 192.168.100.82");  
-            ip = "192.168.100.82"; 
-          }
-        }
-        break;
-
-        // For everything else: do nothing
-      case WStype_BIN:
-      case WStype_ERROR:
-      case WStype_FRAGMENT_TEXT_START:
-      case WStype_FRAGMENT_BIN_START:
-      case WStype_FRAGMENT:
-      case WStype_FRAGMENT_FIN:
-      default:
-      break;  
-    }
-  }
-}
-
-
-/////////////////////
-
-// void loop2(void *args){
-//   while (true)
-//   {
-//     Serial.println("\t \t \t Se esta corriendo en el nucleo" + String(xPortGetCoreID()));
-//     delay(100);  
-//   }
-//   vTaskDelay(10); 
-// }
 
 void setup() //////// Setup ////////////
 {
-  // //Inicio de una tarea en paralelo: 
-  // xTaskCreatePinnedToCore(
-  //   loop2,
-  //   "Task2", 
-  //   1000,
-  //   NULL, 
-  //   1, //Prioridad 
-  //   &Task1, 
-  //   0
-  // );
-
   Serial.begin(115200);
-  WiFi.mode(WIFI_AP_STA); 
-  WiFi.softAP(ssid); 
-  ap_mode();
-  //Manejo de las peticiones: 
-  server.on("/", raiz); 
-  server.begin(); 
-  webSocket.begin();
-  //Se asigna la funcion de llegada de datos de webserber:  
-  webSocket.onEvent(webSocketEvent); 
-
+  //WIFI begin: 
+  WiFi.begin(ssid, password); 
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500); 
+    Serial.print("Connecting to Wifi: ");
+    Serial.println(ssid);
+  }
+  
+  //CONNECION A EL BROKER: 
+  client.setServer(mqtt_broker, mqtt_port);
+  client.setCallback(callback);
+  while (!client.connected()) {
+    String client_id = "esp32-client-";
+    client_id += String(WiFi.macAddress());
+    Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+        Serial.println("Public emqx mqtt broker connected");
+    } else {
+        Serial.print("failed with state ");
+        Serial.print(client.state());
+        delay(2000);
+    }
+  }
+  
+  //PUB and Sub: 
+  client.publish(topic, "Message from ESP32"); 
+  client.subscribe(topic); 
 
   Serial.println("Cargando funciones de membresia: "); 
   //Inicio del tiempo: 
@@ -301,9 +199,8 @@ void setup() //////// Setup ////////////
 //////  --- LOOP --- //// ///////////// --------
 void loop()
 { 
-  webSocket.loop(); 
-  server.handleClient(); 
-
+  client.loop();  
+  
   std::vector<float> fuzzy_val_dist; 
   std::vector<float> fuzzy_val_error;
   std::vector<float> kj; 
