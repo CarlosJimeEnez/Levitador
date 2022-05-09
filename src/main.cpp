@@ -22,7 +22,7 @@ std::vector<Func_meb> salida_func_membr;
 
 
 /// Configuraciones del PWM asignado a el motor: 
-const float k = 27; 
+const float k = 25; 
 const int freq = 1000; //HZ
 const int canal0 = 0; 
 const int resolucion = 10; //bit
@@ -62,20 +62,20 @@ void setup()
   }
   
 //Funciones de membresia INPUT1: 
-  Func_meb fun1("NB", "exp", 2.5, 0.03); 
+  Func_meb fun1("NB", "exp", init_time, 0.03); 
   Func_meb fun2("NM", "exp", 10.13, 0.04);
-  Func_meb fun3("NS", "exp", 19.71, 0.04);
-  Func_meb fun4("Z", "exp", 27, 0.09);
-  Func_meb fun5("PS", "exp", 33.6, 0.05);
-  Func_meb fun6("PM", "exp", 40.87, 0.04);
-  Func_meb fun7("PB", "exp", 48.5, 0.03);
+  Func_meb fun3("NS", "exp", 17.51, 0.04);
+  Func_meb fun4("Z", "exp", k, 0.09);
+  Func_meb fun5("PS", "exp", 31.9, 0.05);
+  Func_meb fun6("PM", "exp", 30.85, 0.04);
+  Func_meb fun7("PB", "exp", finish_time, 0.03);
   Func_meb arreglo[] = { fun1, fun2, fun3, fun4, fun5, fun6, fun7};
   std::vector<Func_meb> funciones_memb;
   for (auto fun : arreglo) {
       funciones_memb.push_back(fun);
       fun.mostrar_valores(); 
   }
-
+  
   //ERROR func_membr: 
   Func_meb fun8("NB", "exp", -21.5, 0.004);
   Func_meb fun9("NS", "exp", 24.5, 0.004);
