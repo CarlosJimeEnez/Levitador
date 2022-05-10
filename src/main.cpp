@@ -17,8 +17,8 @@ using namespace std;
 //TaskHandle_t Task1; 
 
 //Parametros de red: 
-const char *ssid = "RS_NETWORK_2_2.4GHZ"; //Nombre Red 
-const char *password = "rsautomation2017";  //Contraseña
+const char *ssid = "MEGACABLE-979F"; //Nombre Red 
+const char *password = "8eAYgaeY";  //Contraseña
 const char *mqtt_broker = "broker.emqx.io";
 const char *topic = "esp32/test";
 const char *mqtt_username = "emqx";
@@ -60,14 +60,13 @@ void setup() //////// Setup ////////////
 {
   Serial.begin(9600);
 
-  // WiFi.begin(ssid, password); 
-  // while (WiFi.status() != WL_CONNECTED)
-  // {
-  //   delay(500); 
-  //   Serial.println("Connected to WiFi"); 
-  // }
+  WiFi.begin(ssid, password); 
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500); 
+    Serial.println("Intentando conetctarse"); 
+  }
   
-
   Serial.println("Cargando funciones de membresia: "); 
   //Input 1 vectores: 
   float init_time = 2.5; 
