@@ -44,6 +44,7 @@ const int resolucion = 10; //bit
 float tiempo_inicio = millis();  
 int duty_cycle = 0; 
 
+//Callback function
 void callback(char *topic, byte *payload, unsigned int length) {
  Serial.print("Message arrived in topic: ");
  Serial.println(topic);
@@ -67,6 +68,29 @@ void setup() //////// Setup ////////////
     Serial.println("Intentando conetctarse"); 
   }
   
+Serial.println("Connected to the WiFi network");
+//connecting to a mqtt broker
+client.setServer(mqtt_broker, mqtt_port);
+client.setCallback(callback);
+while (!client.connected()) {
+    String client_id = "esp32-client-";
+    client_id += String(WiFi.macAddress());
+    Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+        Serial.println("Public emqx mqtt broker connected");
+    } else {
+        Serial.print("failed with state ");
+        Serial.print(client.state());
+        delay(2000);
+    }
+}
+
+// publish and subscribe
+client.publish(topic, "Hi EMQX I'm ESP32 ^^");
+client.subscribe(topic);
+
+
+
   Serial.println("Cargando funciones de membresia: "); 
   //Input 1 vectores: 
   float init_time = 2.5; 
@@ -230,24 +254,11 @@ void loop()
 
   //INPUT: 
   float distancia = calc_dist(5);
-  float error = k - distancia; 
+  float error = k - distancia;
+  string dist_string = to_string(distancia);
 
+  client.publish(topic , (char*)dist_string.c_str()); 
   
-  // //Velocidad: 
-  // float vel = 0;
-  // int16_t time1 = millis();
-  // double pos1 = distancia * 10;  
-  // delay(50); 
-  // double pos2 = calc_dist(1) * 10; 
-  // int16_t time2 = millis(); 
-  
-  // vel =  (pos2 - pos1)/(time2 - time1); 
-  // Serial.print("VEL: -------------------------------> "); 
-  // Serial.println(vel);
-  // Serial.print("Time2: "); 
-  // Serial.println(time2);
-
-
   //FUZZIFICAR la distancia:
   //Toma el par de valores en la posicion i y la asigna a item, para acceder a el array de valor de <y> 
   //se usa el el puntero item->second.
@@ -263,7 +274,6 @@ void loop()
     }
   } 
 
-  Serial.println("Here"); 
   // //Calculo del grado de consistencia 
   // for(auto i: kj){
   //   alpha_j.push_back(max(min(fuzzy_val_hecho[0], i))); 
