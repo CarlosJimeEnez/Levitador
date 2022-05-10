@@ -13,18 +13,19 @@
 
 using namespace std;
 
-//Declaracion de una tarea que corre paralelamente a el loop(): 
-//TaskHandle_t Task1; 
 
 //Parametros de red: 
-const char *ssid = "MEGACABLE-979F"; //Nombre Red 
-const char *password = "8eAYgaeY";  //Contraseña
+const char *ssid = "MEGACABLE-979F"; //RS_NETWORK_2_2.4GHZ
+const char *password = "8eAYgaeY";  //Contraseña rsautomation
+
+//Broker: 
 const char *mqtt_broker = "broker.emqx.io";
 const char *topic = "esp32/test";
 const char *mqtt_username = "emqx";
 const char *mqtt_password = "public";
 const int mqtt_port = 1883;
 
+//Objetos
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -35,15 +36,6 @@ std::map<int, std::vector<float>> dist_values_map;
 std::map<int, std::vector<float>> hecho_values_map; 
 std::vector<Func_meb> salida_func_membr;
 
-TaskHandle_t  Task1; 
-
-void loop2(void *parameters){
-  while (1)
-  {
-    client.loop();  
-  }
-  vTaskDelay(10); 
-}
 
 /// Configuraciones del PWM asignado a el motor: 
 const float k = 25; 
@@ -68,7 +60,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
 
 void setup() //////// Setup ////////////
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   WiFi.begin(ssid, password); 
   while (WiFi.status() != WL_CONNECTED)
@@ -80,6 +72,7 @@ void setup() //////// Setup ////////////
   Serial.println("Connected to the WiFi network");
   //connecting to a mqtt broker
   client.setServer(mqtt_broker, mqtt_port);
+  //Handle funcion callback
   client.setCallback(callback);
   while (!client.connected()) {
     String client_id = "esp32-client-";
@@ -97,16 +90,7 @@ void setup() //////// Setup ////////////
   // publish and subscribe
   client.publish(topic, "Hi EMQX I'm ESP32 ^^");
   client.subscribe(topic);
-
-  xTaskCreatePinnedToCore(
-    loop2, 
-    "Task_1", 
-    2000, 
-    NULL, 
-    1, 
-    &Task1, 
-    0
-  ); 
+ 
 
   //Inicio de funciones de graficas: 
   Serial.println("Cargando funciones de membresia: "); 
@@ -120,7 +104,7 @@ void setup() //////// Setup ////////////
 
   //Salida configuraciones: 
   float init_salida_val = 4; 
-  float finish_salida_val = 9;
+  float finish_salida_val = 10;
   
 
   //Funcion para automatizar el despliegue de funciones:
@@ -239,7 +223,7 @@ void setup() //////// Setup ////////////
 //////  --- LOOP --- //// ///////////// --------
 void loop()
 { 
-  
+  client.loop();   
   std::vector<float> fuzzy_val_dist; 
   std::vector<float> fuzzy_val_error;
   std::vector<float> fuzzy_val_hecho;
@@ -253,9 +237,7 @@ void loop()
   //FUZZIFICAR la distancia:
   //Toma el par de valores en la posicion i y la asigna a item, para acceder a el array de valor de <y> 
   //se usa el el puntero item->second.
-  Serial.print("distancia: "); 
-  Serial.println(distancia); 
-
+  
   fuzzy_val_dist = fuzzy_input(dist_values_map, distancia, 2.5, 100);  
   fuzzy_val_error = fuzzy_input(error_values_map, error, -21.5, 100); 
   fuzzy_val_hecho = fuzzy_input(hecho_values_map, distancia, 2.5, 10); 
