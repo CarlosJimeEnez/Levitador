@@ -23,8 +23,9 @@ def index():
 
 @socketio.on('publish')
 def handle_publish(json_str):
-    data = json.loads(json_str)
-    mqtt.publish(data['topic'], data['message'])
+    #data = json.loads(json_str)
+    #mqtt.publish(data['topic'], data['message'])
+    pass
 
 
 @socketio.on('message')
@@ -48,7 +49,7 @@ def handle_mqtt_message(client, userdata, message):
     # )
     
     print("Topic:  " + message.topic)
-    print(message.payload)
+    print(message)
     # socketio.emit('mqtt_message', data=data)
     return 200
 

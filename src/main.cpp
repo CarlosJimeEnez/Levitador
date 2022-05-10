@@ -35,6 +35,15 @@ std::map<int, std::vector<float>> dist_values_map;
 std::map<int, std::vector<float>> hecho_values_map; 
 std::vector<Func_meb> salida_func_membr;
 
+TaskHandle_t  Task1; 
+
+void loop2(void *parameters){
+  while (1)
+  {
+    client.loop();  
+  }
+  vTaskDelay(10); 
+}
 
 /// Configuraciones del PWM asignado a el motor: 
 const float k = 25; 
@@ -67,12 +76,12 @@ void setup() //////// Setup ////////////
     delay(500); 
     Serial.println("Intentando conetctarse"); 
   }
-  
-Serial.println("Connected to the WiFi network");
-//connecting to a mqtt broker
-client.setServer(mqtt_broker, mqtt_port);
-client.setCallback(callback);
-while (!client.connected()) {
+
+  Serial.println("Connected to the WiFi network");
+  //connecting to a mqtt broker
+  client.setServer(mqtt_broker, mqtt_port);
+  client.setCallback(callback);
+  while (!client.connected()) {
     String client_id = "esp32-client-";
     client_id += String(WiFi.macAddress());
     Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
@@ -83,14 +92,23 @@ while (!client.connected()) {
         Serial.print(client.state());
         delay(2000);
     }
-}
+  }
 
-// publish and subscribe
-client.publish(topic, "Hi EMQX I'm ESP32 ^^");
-client.subscribe(topic);
+  // publish and subscribe
+  client.publish(topic, "Hi EMQX I'm ESP32 ^^");
+  client.subscribe(topic);
 
+  xTaskCreatePinnedToCore(
+    loop2, 
+    "Task_1", 
+    2000, 
+    NULL, 
+    1, 
+    &Task1, 
+    0
+  ); 
 
-
+  //Inicio de funciones de graficas: 
   Serial.println("Cargando funciones de membresia: "); 
   //Input 1 vectores: 
   float init_time = 2.5; 
@@ -104,10 +122,7 @@ client.subscribe(topic);
   float init_salida_val = 4; 
   float finish_salida_val = 9;
   
-  //Velocidad configuraciones: 
-  float init_vel_time = -5; 
-  float finish_vel_time = 5;
-  
+
   //Funcion para automatizar el despliegue de funciones:
   float rango_total = finish_salida_val - init_salida_val; 
   int num_fun = 7; 
@@ -169,16 +184,6 @@ client.subscribe(topic);
       hecho_func_membr.push_back(fun);
   }
 
-  //Velocidad funciones membr: 
-  Func_meb fun19("NS", "exp", init_vel_time, 0.09);
-  Func_meb fun20("Z", "exp", 0, 1);
-  Func_meb fun21("PS", "exp", finish_vel_time, 0.09);
-  Func_meb vel_arreglo[] = {fun18, fun19, fun20};
-  std::vector<Func_meb> vel_func_membr;
-  for (auto fun : vel_arreglo) {
-      vel_func_membr.push_back(fun);
-      //fun.mostrar_valores(); 
-  }
 
   //Inicia el objeto de la clase Grafica y prepara los valores para crear la grafica de 
   //entrada 1.
@@ -221,16 +226,6 @@ client.subscribe(topic);
   char Nombre_salida[10] = "salida";
   salida_values_map = build_graph(Nombre_salida, salida_func_membr, time2, y_values);
 
-  //Velocidad: 
-  time.clear(); 
-  y_values.clear(); 
-  time = tiempo(init_vel_time, finish_vel_time, 0.1);
-  for (int i = 0; i < time.size(); i++)
-  {
-      y_values.push_back(0);
-  }
-  char Nombre_velocidad[10] = "salida";
-  salida_values_map = build_graph(Nombre_velocidad, vel_func_membr, time, y_values);
 
   /// PWM resolucion, freq, canal setup. 
   ledcSetup(canal0, freq, resolucion); 
@@ -244,7 +239,6 @@ client.subscribe(topic);
 //////  --- LOOP --- //// ///////////// --------
 void loop()
 { 
-  client.loop();  
   
   std::vector<float> fuzzy_val_dist; 
   std::vector<float> fuzzy_val_error;
@@ -253,19 +247,23 @@ void loop()
   std::vector<float> alpha_j; 
 
   //INPUT: 
-  float distancia = calc_dist(5);
+  float distancia = calc_dist(1);
   float error = k - distancia;
-  string dist_string = to_string(distancia);
 
-  client.publish(topic , (char*)dist_string.c_str()); 
-  
   //FUZZIFICAR la distancia:
   //Toma el par de valores en la posicion i y la asigna a item, para acceder a el array de valor de <y> 
   //se usa el el puntero item->second.
+  Serial.print("distancia: "); 
+  Serial.println(distancia); 
+
   fuzzy_val_dist = fuzzy_input(dist_values_map, distancia, 2.5, 100);  
   fuzzy_val_error = fuzzy_input(error_values_map, error, -21.5, 100); 
   fuzzy_val_hecho = fuzzy_input(hecho_values_map, distancia, 2.5, 10); 
 
+  string dist_string = to_string(distancia);
+  //Publica los valores: 
+  client.publish(topic , (char*)dist_string.c_str()); 
+  
   //Calculo de KJ:
   for(auto i: fuzzy_val_dist){
     for(auto j: fuzzy_val_error){
@@ -297,6 +295,7 @@ void loop()
     salida_func_membr[6].m, salida_func_membr[6].m,  salida_func_membr[6].m,
   }; 
 
+  //Numerador: 
   for (size_t i = 0; i < kj.size(); i++)
   {
     float mult_num = kj[i] * cj[i]; 
@@ -313,8 +312,8 @@ void loop()
   }
 
   float v_out = num_defuzzy/den_defuzzy; 
- // Serial.println("v_out"); 
- // Serial.println(v_out); 
+  Serial.println("v_out"); 
+  Serial.println(v_out); 
   //Conversion del volt salida en el duty cycle del pwm.  
   int duty_cycle = 83.697 * v_out + 62.775 ; 
 
