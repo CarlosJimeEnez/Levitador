@@ -66,7 +66,7 @@ void setup()
   Func_meb fun3("NS", "exp", 17.51, 0.04);
   Func_meb fun4("Z", "exp", k, 0.09);
   Func_meb fun5("PS", "exp", 30.85, 0.05);
-  Func_meb fun6("PM", "exp", 31.9, 0.04);
+  Func_meb fun6("PM", "exp", 38.9, 0.04);
   Func_meb fun7("PB", "exp", finish_time, 0.03);
   Func_meb arreglo[] = { fun1, fun2, fun3, fun4, fun5, fun6, fun7};
   std::vector<Func_meb> funciones_memb;
@@ -202,7 +202,7 @@ void loop()
   vector<float> cj = {
     salida_func_membr[0].m , salida_func_membr[0].m, salida_func_membr[0].m,
     salida_func_membr[0].m, salida_func_membr[0].m,  salida_func_membr[0].m,
-    salida_func_membr[2].m, salida_func_membr[2].m,  salida_func_membr[2].m,
+    salida_func_membr[1].m, salida_func_membr[1].m,  salida_func_membr[1].m,
     salida_func_membr[3].m, salida_func_membr[3].m,  salida_func_membr[3].m,
     salida_func_membr[4].m, salida_func_membr[4].m,  salida_func_membr[4].m,
     salida_func_membr[5].m, salida_func_membr[5].m, salida_func_membr[5].m,
