@@ -1,28 +1,30 @@
 const socket = io()
-socket.emit("message", "hello")
+var distancia = 0; 
 socket.on("message", function(msg){
-	console.log(msg)
+	distancia = parseInt(msg)
+	$("#dist").text(distancia)  
 }) 
 
-socket.on("disatncia", function(msg){
-	console.log("distancia" + msg)
+socket.on("resultado", function(msg){
+	var resultado = parseInt(msg)
+	$("#resultado").text(resultado)
 })
 
 TESTER = document.getElementById('chart');
 
-function random_vals(){
-	return Math.random()
-}
+// function random_vals(){
+// 	return Math.random()
+// }
 
-Plotly.newPlot( TESTER, [{
-	y: [random_vals()],
-	type: "line"
-}]);
+// Plotly.newPlot( TESTER, [{
+// 	y: [random_vals()],
+// 	type: "line"
+// }]);
 
-setInterval(function(){
-	Plotly.extendtracesf
-}
-,200)	
+// setInterval(function(){
+// 	Plotly.extendtracesf
+// }
+// ,200)	
 
-console.log(Morris.Line.data)    
+//console.log(Morris.Line.data)    
 

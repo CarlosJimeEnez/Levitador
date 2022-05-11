@@ -3,6 +3,7 @@ from base64 import decode
 from calendar import c
 import json
 from pickle import GLOBAL, TRUE
+from socket import socket
 from unicodedata import name
 from flask import Flask, render_template
 from flask_mqtt import Mqtt
@@ -123,7 +124,7 @@ def handle_mqtt_message(client, userdata, message):
         ]
         init = True
 
-    if message.payload.decode() == "aaa": 
+    if message.payload.decode() == "aaa" or message.payload.decode() == "Hi EMQ X I'm ESP32 ^^": 
         print(message.payload.decode())
     else: 
         fuzzy_input = []
@@ -132,7 +133,7 @@ def handle_mqtt_message(client, userdata, message):
         print(float(message.payload.decode()))
         payload_float = float(message.payload.decode())
         # -- Inputs: 
-        if payload_float > 2.5 and payload_float < 48.5:
+        if payload_float > 2.5 and payload_float < 10000:
             print("Payload: " + f'{payload_float}') 
             distancia_input = payload_float
             error_intput = k - distancia_input 
@@ -164,6 +165,9 @@ def handle_mqtt_message(client, userdata, message):
 
             Resultado = numerador/sum_kj
             print(f'Resultado: {Resultado}')
+            
+            socketio.emit("resultado", Resultado)
+            socketio.send(distancia_input) 
             
         else: 
             print("Numero fuera de rango")
