@@ -31,7 +31,7 @@ int duty_cycle = 0;
 ////
 void setup()
 {
-  Serial.begin(11500);
+  Serial.begin(115200);
   
   Serial.println("Cargando funciones de membresia: "); 
   //Input 1 vectores: 
@@ -208,7 +208,7 @@ void loop()
     salida_func_membr[0].m, salida_func_membr[0].m,  salida_func_membr[0].m,
     salida_func_membr[3].m, salida_func_membr[3].m,  salida_func_membr[3].m,
     salida_func_membr[3].m, salida_func_membr[4].m,  salida_func_membr[4].m,
-    salida_func_membr[4].m, salida_func_membr[4].m, salida_func_membr[4].m,
+    salida_func_membr[5].m, salida_func_membr[5].m, salida_func_membr[5].m,
     salida_func_membr[6].m, salida_func_membr[6].m,  salida_func_membr[6].m,
   }; 
 
