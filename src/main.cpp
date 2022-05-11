@@ -20,7 +20,6 @@ std::map<int, std::vector<float>> dist_values_map;
 std::map<int, std::vector<float>> hecho_values_map; 
 std::vector<Func_meb> salida_func_membr;
 
-
 /// Configuraciones del PWM asignado a el motor: 
 const float k = 25; 
 const int freq = 1000; //HZ
@@ -32,7 +31,7 @@ int duty_cycle = 0;
 ////
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(11500);
   
   Serial.println("Cargando funciones de membresia: "); 
   //Input 1 vectores: 
@@ -66,8 +65,8 @@ void setup()
   Func_meb fun2("NM", "exp", 10.13, 0.04);
   Func_meb fun3("NS", "exp", 17.51, 0.04);
   Func_meb fun4("Z", "exp", k, 0.09);
-  Func_meb fun5("PS", "exp", 31.9, 0.05);
-  Func_meb fun6("PM", "exp", 30.85, 0.04);
+  Func_meb fun5("PS", "exp", 30.85, 0.05);
+  Func_meb fun6("PM", "exp", 31.9, 0.04);
   Func_meb fun7("PB", "exp", finish_time, 0.03);
   Func_meb arreglo[] = { fun1, fun2, fun3, fun4, fun5, fun6, fun7};
   std::vector<Func_meb> funciones_memb;
@@ -126,7 +125,7 @@ void setup()
   }
   hecho_values_map = build_graph(Nombre_hecho, hecho_func_membr, time, y_values);
 
-  //Graph error 2:  
+  //Error:  
   time.clear(); 
   y_values.clear(); 
   time = error_xval(init_time2, finish_time2);
