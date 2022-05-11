@@ -199,13 +199,16 @@ void loop()
   //Los centroides estan colocados de la forma: 
   // NB and NB -> NB, NB and PB -> NB, NB and Z -> NB,  
   // NM and NB -> NB, NM and PB -> NB , NM and Z -> NB
+  // NS and NB -> NB, NS and PB -> NB , NS and Z -> NB
+  // Z and NB -> Z,   Z and PB -> Z , Z and Z -> Z
+  // PS and NB -> Z,  PS and PB -> PS , PS and PS -> PS
   vector<float> cj = {
     salida_func_membr[0].m , salida_func_membr[0].m, salida_func_membr[0].m,
     salida_func_membr[0].m, salida_func_membr[0].m,  salida_func_membr[0].m,
     salida_func_membr[0].m, salida_func_membr[0].m,  salida_func_membr[0].m,
     salida_func_membr[3].m, salida_func_membr[3].m,  salida_func_membr[3].m,
-    salida_func_membr[4].m, salida_func_membr[4].m,  salida_func_membr[4].m,
-    salida_func_membr[5].m, salida_func_membr[5].m, salida_func_membr[5].m,
+    salida_func_membr[3].m, salida_func_membr[4].m,  salida_func_membr[4].m,
+    salida_func_membr[4].m, salida_func_membr[4].m, salida_func_membr[4].m,
     salida_func_membr[6].m, salida_func_membr[6].m,  salida_func_membr[6].m,
   }; 
 
