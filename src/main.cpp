@@ -233,6 +233,10 @@ void loop()
   float distancia = calc_dist(1);
   float error = k - distancia;
 
+  string dist_string = to_string(distancia);
+  //Publica los valores: 
+  client.publish(topic , (char*)dist_string.c_str()); 
+  
   //FUZZIFICAR la distancia:
   //Toma el par de valores en la posicion i y la asigna a item, para acceder a el array de valor de <y> 
   //se usa el el puntero item->second.
@@ -241,9 +245,6 @@ void loop()
   fuzzy_val_error = fuzzy_input(error_values_map, error, -21.5, 100); 
   fuzzy_val_hecho = fuzzy_input(hecho_values_map, distancia, 2.5, 10); 
 
-  string dist_string = to_string(distancia);
-  //Publica los valores: 
-  client.publish(topic , (char*)dist_string.c_str()); 
   
   //Calculo de KJ:
   for(auto i: fuzzy_val_dist){

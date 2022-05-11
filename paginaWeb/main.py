@@ -43,7 +43,10 @@ def handle_connect(client, userdata, flags, rc):
 def handle_mqtt_message(client, userdata, message):
     global init
     global payload
+    global distancia_dicc
     global distancia 
+    global error_dic
+    global saldia_dic
     global error
     global stop
     global cj
@@ -85,29 +88,27 @@ def handle_mqtt_message(client, userdata, message):
         distancia_dicc = distancia.build_function()
 
         # ERROR Funciones Membr: 
-        start = k - stop;  stop = k - 2.5
-        rango2 = np.arange(start=start, stop=stop, step=0.001)
-
+        rango2 = np.arange(start=-21.5, stop=24.5, step=0.001)
+        
         error_func_membr = [
-            {'nombre': 'NB', 'tipo': 'exp', 'm': start, 'k': 0.004},
-            {'nombre': 'NS', 'tipo': 'exp', 'm': stop, 'k': 0.004}, 
+            {'nombre': 'NB', 'tipo': 'exp', 'm': -21.5, 'k': 0.004},
+            {'nombre': 'NS', 'tipo': 'exp', 'm': 24.5, 'k': 0.004}, 
             {'nombre': 'Z', 'tipo': 'exp', 'm': 0, 'k': 0.1},
         ]
         error = Fis(name = "Error", rango = rango2, func_membr = error_func_membr)
         error_dic = error.build_function() 
 
         # SALIDA Funciones Membr: 
-        start = 4;  stop = 10
-        rango3 = np.arange(start=start, stop=stop, step=0.001)
+        rango3 = np.arange(start=4, stop=10, step=0.001)
 
         salida_func_membr = [
-            {'nombre': 'NB', 'tipo': 'exp', 'm': b[0], 'k': 6},
+            {'nombre': 'NB', 'tipo': 'exp', 'm': 4, 'k': 6},
             {'nombre': 'NM', 'tipo': 'exp', 'm': b[1], 'k': 5}, 
             {'nombre': 'NS', 'tipo': 'exp', 'm': b[2], 'k': 5},
             {'nombre': 'Z', 'tipo': 'exp', 'm': b[3], 'k': 5},
             {'nombre': 'PS', 'tipo': 'exp', 'm': b[4], 'k': 5},
             {'nombre': 'PM', 'tipo': 'exp', 'm': b[5], 'k': 5},
-            {'nombre': 'PB', 'tipo': 'exp', 'm': b[6], 'k': 5},
+            {'nombre': 'PB', 'tipo': 'exp', 'm': 10, 'k': 5},
         ]
         salida = Fis(name = "salida", rango = rango3, func_membr = salida_func_membr)
         saldia_dic = salida.build_function() 
