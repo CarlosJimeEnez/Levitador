@@ -88,10 +88,9 @@ void setup() //////// Setup ////////////
   }
 
   // publish and subscribe
-  client.publish(topic, "Hi EMQX I'm ESP32 ^^");
-  client.subscribe(topic);
- 
+  //client.publish(topic, "Hi EMQX I'm ESP32 ^^");
 
+ 
   //Inicio de funciones de graficas: 
   Serial.println("Cargando funciones de membresia: "); 
   //Input 1 vectores: 

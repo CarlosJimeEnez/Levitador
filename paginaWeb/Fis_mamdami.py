@@ -38,9 +38,9 @@ class Fis:
 
         return self.func_dicc_values
     
-    def belonging_value(self, input_value):
+    def belonging_value(self, start, input_value):
         '''Retorna el valor de pertenencia a cada funcion de membresia de e el valor de entrada dado:'''
-        new_range = np.arange(start=0, stop=input_value, step=0.001)
+        new_range = np.arange(start = start, stop=input_value, step=0.001)
         belonging_value = np.zeros(np.size(new_range))        
         for function in self.func_memb: 
             #Gaussiana: 
