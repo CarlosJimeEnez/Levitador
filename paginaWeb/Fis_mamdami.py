@@ -41,7 +41,7 @@ class Fis:
     def belonging_value(self, start, input_value):
         '''Retorna el valor de pertenencia a cada funcion de membresia de e el valor de entrada dado:'''
         new_range = np.arange(start = start, stop=input_value, step=0.001)
-        belonging_value = np.zeros(np.size(new_range))        
+        belonging_value = np.zeros(np.size(new_range))
         for function in self.func_memb: 
             #Gaussiana: 
             if function['tipo'] == 'exp':
@@ -54,3 +54,16 @@ class Fis:
                 self.belonging_value_return.append(belonging_value[-1])  
 
         return self.belonging_value_return        
+
+    def belonging_value2(self, start, payload, const):
+        items_tuple = self.func_dicc_values.items()
+
+        for item in items_tuple: 
+            print(item[0])
+            fuzzy_val = item[1][ int(const*(payload - (start)))] 
+            self.belonging_value_return.append(fuzzy_val)
+        
+        return self.belonging_value_return
+
+    def clear_belonging_value(self): 
+        self.belonging_value_return = []

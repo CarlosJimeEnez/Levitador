@@ -1,5 +1,13 @@
 const socket = io()
-socket.emit("message", "hello") 
+socket.emit("message", "hello")
+socket.on("message", function(msg){
+	console.log(msg)
+}) 
+
+socket.on("disatncia", function(msg){
+	console.log("distancia" + msg)
+})
+
 TESTER = document.getElementById('chart');
 
 function random_vals(){

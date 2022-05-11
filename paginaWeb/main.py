@@ -1,3 +1,4 @@
+from ast import Str
 from base64 import decode
 from calendar import c
 import json
@@ -44,6 +45,7 @@ def handle_mqtt_message(client, userdata, message):
     global distancia 
     global error
     global stop
+    global cj
     k = 25
 
     data = dict(
@@ -119,47 +121,53 @@ def handle_mqtt_message(client, userdata, message):
             b[5], b[5], b[5],
             b[6], b[6], b[6]
         ]
-        print("Here")
         init = True
 
+    if message.payload.decode() == "aaa": 
+        print(message.payload.decode())
+    else: 
+        fuzzy_input = []
+        fuzzy_error = []
+
+        print(float(message.payload.decode()))
+        payload_float = float(message.payload.decode())
+        # -- Inputs: 
+        if payload_float > 2.5 and payload_float < 48.5:
+            print("Payload: " + f'{payload_float}') 
+            distancia_input = payload_float
+            error_intput = k - distancia_input 
+            #Calculos de los valores de pertenencia: 
+            fuzzy_input = distancia.belonging_value(2.5, distancia_input)
+            fuzzy_error = error.belonging_value2(error_intput, -21.5, 1000)
+            error.clear_belonging_value()
+            distancia.clear_belonging_value()
+            print(f'Valores de pertenencia distancia: {fuzzy_input}')
+            print(f'Valores de pertenencia error_intput: {fuzzy_error}')
+
+            #Calculos de las KJ:
+            kj = [] 
+            for x1 in fuzzy_input: 
+                for x2 in fuzzy_error: 
+                    kj.append(np.minimum(x1, x2)) 
+            print(f'Tamano de kj: {len(kj)}')
+
+            #Mult de los centroides con las kj:
+            mult_kj = [] 
+            for i, j in zip(kj, cj): 
+                mult_kj.append(i * j)
+            print(f'Tamano de mult_kj: {len(mult_kj)}')
+
+            #Sumatoria de la multiplicacion de las kj y cj: 
+            numerador = sum(mult_kj)
+            #Sumatoriad de las kj: 
+            sum_kj = sum(kj)
+
+            Resultado = numerador/sum_kj
+            print(f'Resultado: {Resultado}')
+            
+        else: 
+            print("Numero fuera de rango")
     
-
-    print(f'Payload: {float(data["payload"])}')
-    payload_float = float(data['payload'])
-    # -- Inputs: 
-    if payload_float > 2.5 and payload_float < 48.5:
-        print("Payload: " + f'{payload_float}') 
-        distancia_input = payload_float
-        error_intput = k - distancia_input 
-        #Calculos de los valores de pertenencia: 
-        fuzzy_input = distancia.belonging_value(2.5, distancia_input)
-        fuzzy_error = error.belonging_value(k - stop, error_intput)
-        print(f'Valores de pertenencia distancia: {fuzzy_input}')
-        print(f'Valores de pertenencia error_intput: {fuzzy_error}')
-
-        #Calculos de las KJ:
-        kj = [] 
-        for x1 in fuzzy_input: 
-            for x2 in error_intput: 
-                kj.append(np.minimum(x1, x2)) 
-        print(f'Tamano de kj: {len(kj)}')
-
-        #Mult de los centroides con las kj:
-        mult_kj = [] 
-        for i, j in zip(kj, cj): 
-            mult_kj.append(i * j)
-        print(f'Tamano de mult_kj: {len(mult_kj)}')
-
-        #Sumatoria de la multiplicacion de las kj y cj: 
-        numerador = sum(mult_kj)
-        #Sumatoriad de las kj: 
-        sum_kj = sum(kj)
-
-        Resultado = numerador/sum_kj
-        print(f'Resultado: {Resultado}')
-        
-    # socketio.emit('mqtt_message', data=data)
-
 
 @mqtt.on_log()
 def handle_logging(client, userdata, level, buf):
